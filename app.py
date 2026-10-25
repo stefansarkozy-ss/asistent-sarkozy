@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import os
 from datetime import datetime, timedelta
+import urllib.parse
 
 st.set_page_config(page_title="Asistent Štefana Šarközyho", layout="wide", page_icon="💼")
 
@@ -91,6 +92,26 @@ def clear_form_state():
         if k.startswith("serv_") or k.startswith("hod_") or k.startswith("cena_") or k.startswith("prev_") or k in keys_to_clear:
             del st.session_state[k]
 
+def generate_gcal_url(title, date_str, time_str, duration_hours, location, details):
+    try:
+        dt_start = datetime.strptime(f"{date_str} {time_str}", "%Y-%m-%d %H:%M")
+    except Exception:
+        dt_start = datetime.now()
+    
+    dt_end = dt_start + timedelta(hours=float(duration_hours))
+    fmt = "%Y%m%dT%H%M%S"
+    start_str = dt_start.strftime(fmt)
+    end_str = dt_end.strftime(fmt)
+    
+    params = {
+        "action": "TEMPLATE",
+        "text": title,
+        "dates": f"{start_str}/{end_str}",
+        "details": details,
+        "location": location
+    }
+    return f"https://calendar.google.com/calendar/render?action=TEMPLATE&{urllib.parse.urlencode(params)}"
+
 if "dopyty" not in st.session_state:
     st.session_state.dopyty = load_data()
 
@@ -103,8 +124,11 @@ if "edit_item" not in st.session_state:
 if "last_predfaktura" not in st.session_state:
     st.session_state.last_predfaktura = None
 
+if "last_gcal_url" not in st.session_state:
+    st.session_state.last_gcal_url = None
+
 if "service_blocks" not in st.session_state:
-    st.session_state.service_blocks = [{"sluzba": "SI - individuálna supervízia", "hodiny": 4.0}]
+    st.session_state.service_blocks = [{"sluzba": "SI - individuálna supervízia", "hodiny": 1.0}]
 
 st.markdown("""
     <style>
@@ -130,7 +154,7 @@ if selected_tab != st.session_state.menu_tab:
     if selected_tab == "Nová" and st.session_state.menu_tab != "Nová":
         st.session_state.edit_item = None
         clear_form_state()
-        st.session_state.service_blocks = [{"sluzba": "SI - individuálna supervízia", "hodiny": 4.0}]
+        st.session_state.service_blocks = [{"sluzba": "SI - individuálna supervízia", "hodiny": 1.0}]
     st.session_state.menu_tab = selected_tab
 
 st.divider()
@@ -247,7 +271,7 @@ elif st.session_state.menu_tab == "Nová":
 
     st.markdown("---")
 
-    # SEKCIA 2: SLUŽBY A BLOKY (REAKTÍVNY PREPOČET)
+    # SEKCIA 2: SLUŽBY A BLOKY (REAKTÍVNY PREPOČET S STEP 0.5)
     st.markdown("### 2. SLUŽBY A BLOKY (SI: 55 €/h, ostatné: 60 €/h)")
     
     total_sluzba_cena = 0.0
@@ -293,14 +317,14 @@ elif st.session_state.menu_tab == "Nová":
     st.session_state.service_blocks = updated_blocks
 
     if st.button("+ Pridať ďalšiu službu / blok"):
-        st.session_state.service_blocks.append({"sluzba": "SI - individuálna supervízia", "hodiny": 4.0})
+        st.session_state.service_blocks.append({"sluzba": "SI - individuálna supervízia", "hodiny": 1.0})
         st.rerun()
 
     st.markdown(f"**Súčet za všetky služby:** `{round(total_sluzba_cena, 2)} €` (Celkom {total_hodiny} hod.)")
 
     st.markdown("---")
 
-    # SEKCIA 3: CESTOVNÝ KALKULÁTOR (KM + AMORTIZÁCIA + PALIVO + CESTOVNÝ ČAS)
+    # SEKCIA 3: CESTOVNÝ KALKULÁTOR (KM + AMORTIZÁCIA + PALIVO + CESTOVNÝ ČAS S STEP 0.5)
     st.markdown("### 🚗 TABUĽKOVÝ KALKULÁTOR CESTOVNÉHO (Mitsubishi Outlander: 8,5 l nafta/100 km)")
     
     col_k1, col_k2, col_k3, col_k4 = st.columns(4)
@@ -403,7 +427,11 @@ elif st.session_state.menu_tab == "Nová":
 
     combined_services_str = " + ".join([b["sluzba"] for b in st.session_state.service_blocks])
 
-    # Zobrazenie predfaktúry, ak bola práve vygenerovaná
+    # Zobrazenie odkazu na Google Kalendár a predfaktúry, ak bola práve vygenerovaná
+    if st.session_state.get("last_gcal_url"):
+        st.success("Termín bol pripravený pre Google Kalendár:")
+        st.link_button("📅 Otvoriť a pridať do Google Kalendára", st.session_state.last_gcal_url)
+
     if st.session_state.get("last_predfaktura"):
         pf = st.session_state.last_predfaktura
         predfaktura_html = (
@@ -423,6 +451,31 @@ elif st.session_state.menu_tab == "Nová":
 
     btn_label = "💾 Dokončiť, uložiť do kalendára a vygenerovať predfaktúru" if item else "💾 Uložiť dopyt"
     if st.button(btn_label, type="primary"):
+        gcal_details = (
+            f"Služby: {round(total_sluzba_cena, 2)} €\n"
+            f"Cestovné: {round(cena_cestovne, 2)} € ({vzdialenost_km} km, Cestovný čas: {cestovny_cas} hod.)\n"
+            f"Ubytovanie: {ubytovanie} €\n"
+            f"Strava: {strava} €\n"
+            f"Celková suma na FA: {celkova_suma} €\n\n"
+            f"Poznámka: {poznamka}"
+        )
+        gcal_url = generate_gcal_url(
+            title=f"{combined_services_str} ({miesto})",
+            date_str=str(datum_akcie),
+            time_str=cas_akcie_str,
+            duration_hours=total_hodiny,
+            location=f"{miesto}, {krajina}",
+            details=gcal_details
+        )
+        st.session_state.last_gcal_url = gcal_url
+
+        st.session_state.last_predfaktura = {
+            "Miesto": miesto, "Krajina": krajina, "Datum": str(datum_akcie), "Cas": cas_akcie_str,
+            "Sluzby_Str": combined_services_str, "Cena_Sluzby": round(total_sluzba_cena, 2),
+            "Cena_Cestovne": round(cena_cestovne, 2), "Ubytovanie": ubytovanie, "Strava": strava,
+            "Celkova_Suma": celkova_suma
+        }
+
         if item:
             idx = st.session_state.dopyty[st.session_state.dopyty["ID"] == item['ID']].index
             st.session_state.dopyty.loc[idx, "Stav"] = "Kalendár"
@@ -442,14 +495,6 @@ elif st.session_state.menu_tab == "Nová":
             st.session_state.dopyty.loc[idx, "Poznamka"] = poznamka
             
             save_data(st.session_state.dopyty)
-
-            # Uloženie dát pre predfaktúru do session
-            st.session_state.last_predfaktura = {
-                "Miesto": miesto, "Krajina": krajina, "Datum": str(datum_akcie), "Cas": cas_akcie_str,
-                "Sluzby_Str": combined_services_str, "Cena_Sluzby": round(total_sluzba_cena, 2),
-                "Cena_Cestovne": round(cena_cestovne, 2), "Ubytovanie": ubytovanie, "Strava": strava,
-                "Celkova_Suma": celkova_suma
-            }
             st.success(f"Dopyt #{item['ID']} bol úspešne uložený do kalendára a predfaktúra bola vygenerovaná!")
             st.rerun()
         else:
@@ -475,9 +520,7 @@ elif st.session_state.menu_tab == "Nová":
             }
             st.session_state.dopyty = pd.concat([st.session_state.dopyty, pd.DataFrame([novy_riadok])], ignore_index=True)
             save_data(st.session_state.dopyty)
-            clear_form_state()
             st.success(f"Nová požiadavka pre '{miesto}' bola automaticky uložená do kalendára!")
-            st.session_state.menu_tab = "Pipeline"
             st.rerun()
 
 elif st.session_state.menu_tab == "Pipeline":
@@ -490,6 +533,15 @@ elif st.session_state.menu_tab == "Pipeline":
     else:
         for idx, row in cal_df.iterrows():
             total_cena = round(float(row.get('Cena_Sluzby', 0.0)) + float(row.get('Cena_Cestovne', 0.0)) + float(row.get('Ubytovanie', 0.0)) + float(row.get('Strava', 0.0)), 2)
+            
+            gcal_url = generate_gcal_url(
+                title=f"{row['Sluzby']} ({row['Miesto']})",
+                date_str=str(row['Datum_Akcie']),
+                time_str=str(row['Cas']),
+                duration_hours=float(row['Hodiny']),
+                location=f"{row['Miesto']}, {row['Krajina']}",
+                details=f"Služby: {row.get('Cena_Sluzby', 0.0)} €\nCestovné: {row.get('Cena_Cestovne', 0.0)} €\nCelkom: {total_cena} €\nPoznámka: {row['Poznamka']}"
+            )
 
             cal_html = (
                 f"<div class='card-calendar'>"
@@ -502,12 +554,16 @@ elif st.session_state.menu_tab == "Pipeline":
             )
             st.markdown(cal_html, unsafe_allow_html=True)
             
-            if st.button(f"🔄 Vrátiť do spracovania (#{row['ID']})", key=f"revert_{row['ID']}"):
-                d_idx = st.session_state.dopyty[st.session_state.dopyty["ID"] == row['ID']].index
-                st.session_state.dopyty.loc[d_idx, "Stav"] = "Nová"
-                save_data(st.session_state.dopyty)
-                st.success(f"Dopyt #{row['ID']} bol vrátený do spracovania!")
-                st.rerun()
+            col_btn1, col_btn2 = st.columns([2, 2])
+            with col_btn1:
+                st.link_button(f"📅 Pridať do Google Kalendára (#{row['ID']})", gcal_url)
+            with col_btn2:
+                if st.button(f"🔄 Vrátiť do spracovania (#{row['ID']})", key=f"revert_{row['ID']}"):
+                    d_idx = st.session_state.dopyty[st.session_state.dopyty["ID"] == row['ID']].index
+                    st.session_state.dopyty.loc[d_idx, "Stav"] = "Nová"
+                    save_data(st.session_state.dopyty)
+                    st.success(f"Dopyt #{row['ID']} bol vrátený do spracovania!")
+                    st.rerun()
             st.write("---")
 
 elif st.session_state.menu_tab == "Klienti":
