@@ -1,7 +1,8 @@
 import streamlit as st
 import pandas as pd
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
+import urllib.parse
 
 st.set_page_config(page_title="Asistent Štefana Šarközyho", layout="wide", page_icon="💼")
 
@@ -84,12 +85,32 @@ def clear_form_state():
         "vzdialenost_km_val", "cena_cestovne_val", "last_miesto_val", 
         "last_auto_cestovne_calc", "h_akcia", "m_akcia", "h_odchod", "m_odchod",
         "krajina_radio_key", "miesto_input_key", "spotreba_key", "cena_paliva_key",
-        "amort_key", "cestovny_cas_key", "ubytovanie_key", "strava_key", 
+        "amort_key", "cestovny_cas_key", "sadzba_casy_key", "ubytovanie_key", "strava_key", 
         "den_key", "mesiac_key", "rok_key", "poznamka_key"
     ]
     for k in list(st.session_state.keys()):
         if k.startswith("serv_") or k.startswith("hod_") or k.startswith("cena_") or k.startswith("prev_") or k in keys_to_clear:
             del st.session_state[k]
+
+def generate_gcal_url(title, date_str, time_str, duration_hours, location, details):
+    try:
+        dt_start = datetime.strptime(f"{date_str} {time_str}", "%Y-%m-%d %H:%M")
+    except Exception:
+        dt_start = datetime.now()
+    
+    dt_end = dt_start + timedelta(hours=float(duration_hours))
+    fmt = "%Y%m%dT%H%M%S"
+    start_str = dt_start.strftime(fmt)
+    end_str = dt_end.strftime(fmt)
+    
+    params = {
+        "action": "TEMPLATE",
+        "text": title,
+        "dates": f"{start_str}/{end_str}",
+        "details": details,
+        "location": location
+    }
+    return f"https://calendar.google.com/calendar/render?action=TEMPLATE&{urllib.parse.urlencode(params)}"
 
 if "dopyty" not in st.session_state:
     st.session_state.dopyty = load_data()
@@ -99,6 +120,9 @@ if "menu_tab" not in st.session_state:
 
 if "edit_item" not in st.session_state:
     st.session_state.edit_item = None
+
+if "last_gcal_url" not in st.session_state:
+    st.session_state.last_gcal_url = None
 
 if "service_blocks" not in st.session_state:
     st.session_state.service_blocks = [{"sluzba": "SI - individuálna supervízia", "hodiny": 4.0}]
@@ -287,7 +311,7 @@ elif st.session_state.menu_tab == "Nová":
 
     st.markdown("---")
 
-    # SEKCIA 3: CESTOVNÝ KALKULÁTOR
+    # SEKCIA 3: CESTOVNÝ KALKULÁTOR (KM + AMORTIZÁCIA + PALIVO + CESTOVNÝ ČAS)
     st.markdown("### 🚗 TABUĽKOVÝ KALKULÁTOR CESTOVNÉHO (Mitsubishi Outlander: 8,5 l nafta/100 km)")
     
     col_k1, col_k2, col_k3, col_k4 = st.columns(4)
@@ -300,9 +324,16 @@ elif st.session_state.menu_tab == "Nová":
     with col_k4:
         amortizacia_rate = st.number_input("Zákonná amortizácia (€/km)", min_value=0.1, max_value=1.0, value=LEGAL_AMORTIZATION_PER_KM, step=0.001, format="%.3f", key="amort_key")
 
+    col_cc1, col_cc2 = st.columns(2)
+    with col_cc1:
+        cestovny_cas = st.number_input("Cestovný čas (hod. z Dúbravky)", min_value=0.0, max_value=10.0, value=default_cesta, step=0.5, key="cestovny_cas_key")
+    with col_cc2:
+        sadzba_cestovneho_casu = st.number_input("Sadzba za cestovný čas (€/hod)", min_value=0.0, max_value=100.0, value=15.0, step=1.0, key="sadzba_casy_key")
+
     vypocet_amortizacia = vzdialenost_km * amortizacia_rate
     vypocet_palivo = (spotreba / 100.0) * vzdialenost_km * cena_paliva
-    auto_cestovne_total = round(vypocet_amortizacia + vypocet_palivo, 2)
+    vypocet_cestovny_cas = cestovny_cas * sadzba_cestovneho_casu
+    auto_cestovne_total = round(vypocet_amortizacia + vypocet_palivo + vypocet_cestovny_cas, 2)
 
     cestovne_key = "cena_cestovne_val"
     if "last_auto_cestovne_calc" not in st.session_state or st.session_state.get("last_auto_cestovne_calc") != auto_cestovne_total:
@@ -312,17 +343,14 @@ elif st.session_state.menu_tab == "Nová":
     calc_box_html = (
         f"<div class='calc-box'>"
         f"<p style='margin:0;'><b>Rozpis cestovných náhrad:</b> Amortizácia ({vzdialenost_km} km × {amortizacia_rate} €) = "
-        f"<b>{round(vypocet_amortizacia, 2)} €</b> | Palivo nafta ({vzdialenost_km} km × {spotreba} l / 100 × {cena_paliva} €) = "
-        f"<b>{round(vypocet_palivo, 2)} €</b></p>"
+        f"<b>{round(vypocet_amortizacia, 2)} €</b> | Palivo ({vzdialenost_km} km × {spotreba} l/100 × {cena_paliva} €) = "
+        f"<b>{round(vypocet_palivo, 2)} €</b> | Cestovný čas ({cestovny_cas} hod. × {sadzba_cestovneho_casu} €/h) = "
+        f"<b>{round(vypocet_cestovny_cas, 2)} €</b></p>"
         f"</div>"
     )
     st.markdown(calc_box_html, unsafe_allow_html=True)
 
-    col_c1, col_c2 = st.columns(2)
-    with col_c1:
-        cestovny_cas = st.number_input("Cestovný čas (hod. z Dúbravky)", min_value=0.0, max_value=10.0, value=default_cesta, step=0.5, key="cestovny_cas_key")
-    with col_c2:
-        cena_cestovne = st.number_input("Výsledné cestovné (€) - automatický výpočet", min_value=0.0, max_value=2000.0, step=5.0, key=cestovne_key)
+    cena_cestovne = st.number_input("Výsledné cestovné (€) - automatický výpočet", min_value=0.0, max_value=2000.0, step=5.0, key=cestovne_key)
 
     st.markdown("---")
 
@@ -386,8 +414,30 @@ elif st.session_state.menu_tab == "Nová":
 
     combined_services_str = " + ".join([b["sluzba"] for b in st.session_state.service_blocks])
 
-    btn_label = "💾 Dokončiť a automaticky vytvoriť termín v Google Kalendári" if item else "💾 Uložiť dopyt do zoznamu"
+    if st.session_state.get("last_gcal_url"):
+        st.success("Termín bol pripravený pre Google Kalendár:")
+        st.link_button("📅 Otvoriť a pridať do Google Kalendára", st.session_state.last_gcal_url)
+
+    btn_label = "💾 Dokončiť a vytvoriť termín v Google Kalendári" if item else "💾 Uložiť dopyt do zoznamu"
     if st.button(btn_label, type="primary"):
+        gcal_details = (
+            f"Služby: {round(total_sluzba_cena, 2)} €\n"
+            f"Cestovné: {round(cena_cestovne, 2)} € ({vzdialenost_km} km, Cestovný čas: {cestovny_cas} hod.)\n"
+            f"Ubytovanie: {ubytovanie} €\n"
+            f"Strava: {strava} €\n"
+            f"Celková suma na FA: {celkova_suma} €\n\n"
+            f"Poznámka: {poznamka}"
+        )
+        gcal_url = generate_gcal_url(
+            title=f"{combined_services_str} ({miesto})",
+            date_str=str(datum_akcie),
+            time_str=cas_akcie_str,
+            duration_hours=total_hodiny,
+            location=f"{miesto}, {krajina}",
+            details=gcal_details
+        )
+        st.session_state.last_gcal_url = gcal_url
+
         if item:
             idx = st.session_state.dopyty[st.session_state.dopyty["ID"] == item['ID']].index
             st.session_state.dopyty.loc[idx, "Stav"] = "Kalendár"
@@ -407,10 +457,7 @@ elif st.session_state.menu_tab == "Nová":
             st.session_state.dopyty.loc[idx, "Poznamka"] = poznamka
             
             save_data(st.session_state.dopyty)
-            st.session_state.edit_item = None
-            clear_form_state()
-            st.success(f"Dopyt #{item['ID']} ({miesto}) bol úspešne spracovaný a prenesený do kalendára!")
-            st.session_state.menu_tab = "Pipeline"
+            st.success(f"Dopyt #{item['ID']} ({miesto}) bol úspešne spracovaný!")
             st.rerun()
         else:
             novy_id = int(st.session_state.dopyty["ID"].max() + 1) if not st.session_state.dopyty.empty else 1
@@ -435,9 +482,7 @@ elif st.session_state.menu_tab == "Nová":
             }
             st.session_state.dopyty = pd.concat([st.session_state.dopyty, pd.DataFrame([novy_riadok])], ignore_index=True)
             save_data(st.session_state.dopyty)
-            clear_form_state()
             st.success(f"Dopyt pre '{miesto}' bol uložený pod ID {novy_id}!")
-            st.session_state.menu_tab = "Dopyty"
             st.rerun()
 
 elif st.session_state.menu_tab == "Pipeline":
@@ -450,6 +495,16 @@ elif st.session_state.menu_tab == "Pipeline":
     else:
         for idx, row in cal_df.iterrows():
             total_cena = round(float(row.get('Cena_Sluzby', 0.0)) + float(row.get('Cena_Cestovne', 0.0)) + float(row.get('Ubytovanie', 0.0)) + float(row.get('Strava', 0.0)), 2)
+            
+            gcal_url = generate_gcal_url(
+                title=f"{row['Sluzby']} ({row['Miesto']})",
+                date_str=str(row['Datum_Akcie']),
+                time_str=str(row['Cas']),
+                duration_hours=float(row['Hodiny']),
+                location=f"{row['Miesto']}, {row['Krajina']}",
+                details=f"Služby: {row.get('Cena_Sluzby', 0.0)} €\nCestovné: {row.get('Cena_Cestovne', 0.0)} €\nCelkom: {total_cena} €\nPoznámka: {row['Poznamka']}"
+            )
+
             cal_html = (
                 f"<div class='card-calendar'>"
                 f"<h4>📅 {row['Datum_Akcie']} o {row['Cas']} — {row['Sluzby']} ({row['Miesto']}, {row['Krajina']})</h4>"
@@ -460,6 +515,8 @@ elif st.session_state.menu_tab == "Pipeline":
                 f"</div>"
             )
             st.markdown(cal_html, unsafe_allow_html=True)
+            st.link_button(f"📅 Pridať do Google Kalendára (#{row['ID']})", gcal_url)
+            st.write("---")
 
 elif st.session_state.menu_tab == "Klienti":
     st.header("👥 Klienti a partneri")
