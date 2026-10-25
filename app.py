@@ -59,6 +59,9 @@ def save_data(df):
 if "dopyty" not in st.session_state:
     st.session_state.dopyty = load_data()
 
+if "menu_tab" not in st.session_state:
+    st.session_state.menu_tab = "Dopyty"
+
 if "edit_item" not in st.session_state:
     st.session_state.edit_item = None
 
@@ -78,14 +81,19 @@ st.title("💼 Asistent Štefana Šarközyho")
 
 tabs_options = ["Dopyty", "Nová", "Pipeline", "Klienti", "AI Engine", "Export"]
 
-# Opravené prepínanie záložiek so stabilným kľúčom
-selected_tab = st.radio("Navigácia", tabs_options, horizontal=True, label_visibility="collapsed", key="active_tab")
+if st.session_state.menu_tab not in tabs_options:
+    st.session_state.menu_tab = "Dopyty"
+
+current_index = tabs_options.index(st.session_state.menu_tab)
+
+selected_tab = st.radio("Navigácia", tabs_options, index=current_index, horizontal=True, label_visibility="collapsed")
+st.session_state.menu_tab = selected_tab
 
 st.divider()
 
 all_available_services = list(HOURLY_RATES.keys())
 
-if selected_tab == "Dopyty":
+if st.session_state.menu_tab == "Dopyty":
     st.header("📋 Zoznam zaznamenaných dopytov")
     df = st.session_state.dopyty
     active_df = df[df["Stav"] != "Kalendár"]
@@ -129,10 +137,10 @@ if selected_tab == "Dopyty":
                         "sluzba": p if p in all_available_services else all_available_services[0], 
                         "hodiny": h_per_part
                     } for p in parts]
-                    st.session_state.active_tab = "Nová"
+                    st.session_state.menu_tab = "Nová"
                     st.rerun()
 
-elif selected_tab == "Nová":
+elif st.session_state.menu_tab == "Nová":
     item = st.session_state.edit_item
     if item:
         st.header(f"⚙️ Dokončenie a úprava dopytu #{item['ID']} ({item['Miesto']})")
@@ -321,7 +329,7 @@ elif selected_tab == "Nová":
             save_data(st.session_state.dopyty)
             st.session_state.edit_item = None
             st.success(f"Dopyt #{item['ID']} ({miesto}) bol úspešne spracovaný a prenesený do kalendára!")
-            st.session_state.active_tab = "Pipeline"
+            st.session_state.menu_tab = "Pipeline"
             st.rerun()
         else:
             novy_id = int(st.session_state.dopyty["ID"].max() + 1) if not st.session_state.dopyty.empty else 1
@@ -345,10 +353,10 @@ elif selected_tab == "Nová":
             st.session_state.dopyty = pd.concat([st.session_state.dopyty, pd.DataFrame([novy_riadok])], ignore_index=True)
             save_data(st.session_state.dopyty)
             st.success(f"Dopyt pre '{miesto}' bol uložený pod ID {novy_id}!")
-            st.session_state.active_tab = "Dopyty"
+            st.session_state.menu_tab = "Dopyty"
             st.rerun()
 
-elif selected_tab == "Pipeline":
+elif st.session_state.menu_tab == "Pipeline":
     st.header("📅 Kalendár a Prehľad potvrdených termínov")
     df = st.session_state.dopyty
     cal_df = df[df["Stav"] == "Kalendár"].sort_values(by="Datum_Akcie")
@@ -369,15 +377,15 @@ elif selected_tab == "Pipeline":
             )
             st.markdown(cal_html, unsafe_allow_html=True)
 
-elif selected_tab == "Klienti":
+elif st.session_state.menu_tab == "Klienti":
     st.header("👥 Klienti a partneri")
     st.info("Modul pre správu kontaktov a inštitúcií.")
 
-elif selected_tab == "AI Engine":
+elif st.session_state.menu_tab == "AI Engine":
     st.header("🤖 AI Engine")
     st.info("Modul pre pokročilú analýzu dopytov.")
 
-elif selected_tab == "Export":
+elif st.session_state.menu_tab == "Export":
     st.header("📤 Export dát")
     st.write(f"Dátový súbor: `{DATA_FILE}`")
     if st.button("🔄 Obnoviť pôvodné testovacie dáta"):
