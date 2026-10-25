@@ -7,7 +7,6 @@ st.set_page_config(page_title="Asistent Štefana Šarközyho", layout="wide", pa
 
 DATA_FILE = "dopyty.csv"
 
-# Pôvodné testovacie dopyty pre opätovné načítanie
 INITIAL_DATA = [
     {
         "ID": 1,
@@ -50,7 +49,7 @@ INITIAL_DATA = [
 def load_data():
     if os.path.exists(DATA_FILE):
         df = pd.read_csv(DATA_FILE)
-        if df.empty:
+        if df.empty or 'ID' not in df.columns:
             df = pd.DataFrame(INITIAL_DATA)
             df.to_csv(DATA_FILE, index=False)
         return df
@@ -65,11 +64,8 @@ def save_data(df):
 if "dopyty" not in st.session_state:
     st.session_state.dopyty = load_data()
 
-# Vlastné CSS pre prémiový dizajn a karty
 st.markdown("""
     <style>
-    .main { background-color: #0e1117; }
-    .stMetric { background-color: #1e222d; padding: 15px; border-radius: 10px; border: 1px solid #2e3440; }
     .card { background-color: #1e222d; padding: 20px; border-radius: 12px; margin-bottom: 15px; border-left: 5px solid #00d4b1; }
     </style>
 """, unsafe_allow_html=True)
@@ -78,7 +74,6 @@ st.title("💼 Asistent Štefana Šarközyho")
 
 tabs = st.tabs(["📋 Dopyty", "➕ Nová požiadavka", "📊 Pipeline", "👥 Klienti", "⚙️ Nastavenia"])
 
-# ZÁLOŽKA 1: DOPYTY
 with tabs[0]:
     st.header("📋 Zoznam zaznamenaných dopytov")
     df = st.session_state.dopyty
@@ -94,14 +89,13 @@ with tabs[0]:
         st.info("Zatiaľ neboli zaznamenané žiadne dopyty.")
     else:
         for idx, row in df.iterrows():
-            with st.container():
-                st.markdown(f"""
-                <div class="card">
-                    <h4>#{row['ID']} - {row['Sluzba']} ({row['Miesto']}, {row['Krajina']})</h4>
-                    <p><b>Termín:</b> {row['Datum_Akcie']} o {row['Cas']} | <b>Rozsah:</b> {row['Hodiny']} hod. | <b>Stav:</b> <span style="color:#00d4b1">{row['Stav']}</span></p>
-                    <p><i>{row['Poznamka']}</i></p>
-                </div>
-                """, unsafe_allow_html=True)
+            st.markdown(f"""
+            <div class="card">
+                <h4>#{row['ID']} - {row['Sluzba']} ({row['Miesto']}, {row['Krajina']})</h4>
+                <p><b>Termín:</b> {row['Datum_Akcie']} o {row['Cas']} | <b>Rozsah:</b> {row['Hodiny']} hod. | <b>Stav:</b> <span style="color:#00d4b1">{row['Stav']}</span></p>
+                <p><i>{row['Poznamka']}</i></p>
+            </div>
+            """, unsafe_allow_html=True)
 
         st.subheader("⚙️ Spracovanie a zmena stavu")
         selected_id = st.selectbox("Vyberte dopyt na úpravu (ID):", df["ID"].tolist())
@@ -114,7 +108,6 @@ with tabs[0]:
                 st.success("Stav dopytu bol aktualizovaný!")
                 st.rerun()
 
-# ZÁLOŽKA 2: NOVÁ POŽIADAVKA
 with tabs[1]:
     st.header("1. Služby a bloky")
     sluzba = st.selectbox("Služba", ["SI - Indiv. supervízia", "SK - Kolektívna supervízia", "Krízová intervencia", "Koučing", "Vzdelávanie / Lektorovanie"])
@@ -154,10 +147,23 @@ with tabs[1]:
         st.success(f"Dopyt pre '{miesto}' bol uložený pod ID {novy_id}!")
         st.rerun()
 
-# ZÁLOŽKA 3: PIPELINE
 with tabs[2]:
     st.header("📊 Prehľad stavov (Pipeline)")
     if not st.session_state.dopyty.empty:
         st.bar_chart(st.session_state.dopyty["Stav"].value_counts())
     else:
         st.info("Žiadne dáta v pipeline.")
+
+with tabs[3]:
+    st.header("👥 Klienti a partneri")
+    st.info("Modul pre správu kontaktov a inštitúcií.")
+
+with tabs[4]:
+    st.header("⚙️ Nastavenia aplikácie")
+    st.write(f"Dátový súbor: `{DATA_FILE}`")
+    if st.button("🔄 Obnoviť pôvodné testovacie dáta"):
+        df_init = pd.DataFrame(INITIAL_DATA)
+        save_data(df_init)
+        st.session_state.dopyty = df_init
+        st.success("Testovacie dáta boli obnovené!")
+        st.rerun()
