@@ -8,15 +8,15 @@ st.set_page_config(page_title="Asistent Štefana Šarközyho", layout="wide", pa
 DATA_FILE = "dopyty.csv"
 
 INITIAL_DATA = [
-    {"ID": 1, "Datum_Vytvorenia": "2026-10-25 10:15", "Sluzby": "SI - individuálna supervízia", "Hodiny": 4.0, "Miesto": "Cífer", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-02", "Cas": "09:00", "Cestovny_Cas": 1.0, "Odchod": "08:00", "Cena_Sluzby": 220.0, "Cena_Cestovne": 45.0, "Km": 100, "Stav": "Nová", "Poznamka": "p | Fakturácia: 265"},
-    {"ID": 2, "Datum_Vytvorenia": "2026-10-25 10:20", "Sluzby": "SI - individuálna supervízia", "Hodiny": 4.0, "Miesto": "CDR piešťany", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-04", "Cas": "10:00", "Cestovny_Cas": 1.5, "Odchod": "08:30", "Cena_Sluzby": 220.0, "Cena_Cestovne": 85.0, "Km": 190, "Stav": "Nová", "Poznamka": "p | Fakturácia: 305"},
-    {"ID": 3, "Datum_Vytvorenia": "2026-10-25 10:25", "Sluzby": "SI - individuálna supervízia", "Hodiny": 4.0, "Miesto": "KC Príbeta", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-06", "Cas": "09:30", "Cestovny_Cas": 2.0, "Odchod": "07:30", "Cena_Sluzby": 220.0, "Cena_Cestovne": 120.0, "Km": 270, "Stav": "Nová", "Poznamka": "o | dohoda | Fakturácia: 340"},
-    {"ID": 4, "Datum_Vytvorenia": "2026-10-25 10:30", "Sluzby": "SI - individuálna supervízia", "Hodiny": 3.0, "Miesto": "KC Šaľa", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-08", "Cas": "10:00", "Cestovny_Cas": 1.0, "Odchod": "09:00", "Cena_Sluzby": 165.0, "Cena_Cestovne": 65.0, "Km": 150, "Stav": "Nová", "Poznamka": "p | Fakturácia: 230"},
-    {"ID": 5, "Datum_Vytvorenia": "2026-10-25 10:35", "Sluzby": "SI - individuálna supervízia", "Hodiny": 5.0, "Miesto": "dss javirinska", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-10", "Cas": "09:00", "Cestovny_Cas": 1.5, "Odchod": "07:30", "Cena_Sluzby": 275.0, "Cena_Cestovne": 20.0, "Km": 40, "Stav": "Nová", "Poznamka": "p | Fakturácia: 295"},
-    {"ID": 6, "Datum_Vytvorenia": "2026-10-25 10:40", "Sluzby": "SI - individuálna supervízia", "Hodiny": 25.0, "Miesto": "pezinok Ospod", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-15", "Cas": "08:30", "Cestovny_Cas": 0.5, "Odchod": "08:00", "Cena_Sluzby": 1375.0, "Cena_Cestovne": 25.0, "Km": 50, "Stav": "Nová", "Poznamka": "p | dohoda | Fakturácia: 1400"},
-    {"ID": 7, "Datum_Vytvorenia": "2026-10-25 10:45", "Sluzby": "SI - individuálna supervízia", "Hodiny": 6.0, "Miesto": "CDR pezinok", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-18", "Cas": "09:00", "Cestovny_Cas": 0.5, "Odchod": "08:30", "Cena_Sluzby": 330.0, "Cena_Cestovne": 25.0, "Km": 50, "Stav": "Nová", "Poznamka": "p | Fakturácia: 355"},
-    {"ID": 8, "Datum_Vytvorenia": "2026-10-25 10:50", "Sluzby": "SI - individuálna supervízia", "Hodiny": 4.0, "Miesto": "Kc Jelka", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-05", "Cas": "09:00", "Cestovny_Cas": 1.0, "Odchod": "08:00", "Cena_Sluzby": 220.0, "Cena_Cestovne": 40.0, "Km": 90, "Stav": "Nová", "Poznamka": "Testovací dopyt Jelka"},
-    {"ID": 9, "Datum_Vytvorenia": "2026-10-25 10:55", "Sluzby": "SI - individuálna supervízia", "Hodiny": 10.0, "Miesto": "Partizanske", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-22", "Cas": "09:00", "Cestovny_Cas": 2.0, "Odchod": "07:00", "Cena_Sluzby": 550.0, "Cena_Cestovne": 130.0, "Km": 290, "Stav": "Nová", "Poznamka": "p | Fakturácia: 680"}
+    {"ID": 1, "Datum_Vytvorenia": "2026-10-25 10:15", "Sluzby": "SI - individuálna supervízia", "Hodiny": 4.0, "Miesto": "Cífer", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-02", "Cas": "09:00", "Cestovny_Cas": 1.0, "Odchod": "08:00", "Cena_Sluzby": 220.0, "Cena_Cestovne": 45.0, "Ubytovanie": 0.0, "Strava": 0.0, "Km": 100, "Stav": "Nová", "Poznamka": "p | Fakturácia: 265"},
+    {"ID": 2, "Datum_Vytvorenia": "2026-10-25 10:20", "Sluzby": "SI - individuálna supervízia", "Hodiny": 4.0, "Miesto": "CDR piešťany", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-04", "Cas": "10:00", "Cestovny_Cas": 1.5, "Odchod": "08:30", "Cena_Sluzby": 220.0, "Cena_Cestovne": 85.0, "Ubytovanie": 0.0, "Strava": 0.0, "Km": 190, "Stav": "Nová", "Poznamka": "p | Fakturácia: 305"},
+    {"ID": 3, "Datum_Vytvorenia": "2026-10-25 10:25", "Sluzby": "SI - individuálna supervízia", "Hodiny": 4.0, "Miesto": "KC Príbeta", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-06", "Cas": "09:30", "Cestovny_Cas": 2.0, "Odchod": "07:30", "Cena_Sluzby": 220.0, "Cena_Cestovne": 120.0, "Ubytovanie": 0.0, "Strava": 0.0, "Km": 270, "Stav": "Nová", "Poznamka": "o | dohoda | Fakturácia: 340"},
+    {"ID": 4, "Datum_Vytvorenia": "2026-10-25 10:30", "Sluzby": "SI - individuálna supervízia", "Hodiny": 3.0, "Miesto": "KC Šaľa", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-08", "Cas": "10:00", "Cestovny_Cas": 1.0, "Odchod": "09:00", "Cena_Sluzby": 165.0, "Cena_Cestovne": 65.0, "Ubytovanie": 0.0, "Strava": 0.0, "Km": 150, "Stav": "Nová", "Poznamka": "p | Fakturácia: 230"},
+    {"ID": 5, "Datum_Vytvorenia": "2026-10-25 10:35", "Sluzby": "SI - individuálna supervízia", "Hodiny": 5.0, "Miesto": "dss javirinska", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-10", "Cas": "09:00", "Cestovny_Cas": 1.5, "Odchod": "07:30", "Cena_Sluzby": 275.0, "Cena_Cestovne": 20.0, "Ubytovanie": 0.0, "Strava": 0.0, "Km": 40, "Stav": "Nová", "Poznamka": "p | Fakturácia: 295"},
+    {"ID": 6, "Datum_Vytvorenia": "2026-10-25 10:40", "Sluzby": "SI - individuálna supervízia", "Hodiny": 25.0, "Miesto": "pezinok Ospod", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-15", "Cas": "08:30", "Cestovny_Cas": 0.5, "Odchod": "08:00", "Cena_Sluzby": 1375.0, "Cena_Cestovne": 25.0, "Ubytovanie": 0.0, "Strava": 0.0, "Km": 50, "Stav": "Nová", "Poznamka": "p | dohoda | Fakturácia: 1400"},
+    {"ID": 7, "Datum_Vytvorenia": "2026-10-25 10:45", "Sluzby": "SI - individuálna supervízia", "Hodiny": 6.0, "Miesto": "CDR pezinok", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-18", "Cas": "09:00", "Cestovny_Cas": 0.5, "Odchod": "08:30", "Cena_Sluzby": 330.0, "Cena_Cestovne": 25.0, "Ubytovanie": 0.0, "Strava": 0.0, "Km": 50, "Stav": "Nová", "Poznamka": "p | Fakturácia: 355"},
+    {"ID": 8, "Datum_Vytvorenia": "2026-10-25 10:50", "Sluzby": "SI - individuálna supervízia", "Hodiny": 4.0, "Miesto": "Kc Jelka", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-05", "Cas": "09:00", "Cestovny_Cas": 1.0, "Odchod": "08:00", "Cena_Sluzby": 220.0, "Cena_Cestovne": 40.0, "Ubytovanie": 0.0, "Strava": 0.0, "Km": 90, "Stav": "Nová", "Poznamka": "Testovací dopyt Jelka"},
+    {"ID": 9, "Datum_Vytvorenia": "2026-10-25 10:55", "Sluzby": "SI - individuálna supervízia", "Hodiny": 10.0, "Miesto": "Partizanske", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-22", "Cas": "09:00", "Cestovny_Cas": 2.0, "Odchod": "07:00", "Cena_Sluzby": 550.0, "Cena_Cestovne": 130.0, "Ubytovanie": 0.0, "Strava": 0.0, "Km": 290, "Stav": "Nová", "Poznamka": "p | Fakturácia: 680"}
 ]
 
 HOURLY_RATES = {
@@ -25,6 +25,26 @@ HOURLY_RATES = {
     "KI - krízová intervencia": 60.0,
     "K - koučing": 60.0,
     "V - vzdelávanie": 60.0
+}
+
+# Prednastavená databáza vzdialeností (km tam a späť z Bratislavy - Dúbravky)
+DISTANCE_DATABASE = {
+    "jelka": 90,
+    "kc jelka": 90,
+    "cífer": 100,
+    "piešťany": 160,
+    "cdr piešťany": 160,
+    "kc príbeta": 220,
+    "kc šaľa": 130,
+    "dss javorinská": 20,
+    "pezinok": 50,
+    "pezinok ospod": 50,
+    "cdr pezinok": 50,
+    "partizánske": 290,
+    "trnava": 90,
+    "nitra": 180,
+    "brno": 260,
+    "praha": 660
 }
 
 LEGAL_AMORTIZATION_PER_KM = 0.313 
@@ -43,6 +63,10 @@ def load_data():
             df['Cena_Sluzby'] = df.get('Cena_Fakturacia', 0.0)
         if 'Cena_Cestovne' not in df.columns:
             df['Cena_Cestovne'] = 0.0
+        if 'Ubytovanie' not in df.columns:
+            df['Ubytovanie'] = 0.0
+        if 'Strava' not in df.columns:
+            df['Strava'] = 0.0
         if 'Km' not in df.columns:
             df['Km'] = 0
         if 'Sluzby' not in df.columns and 'Sluzba' in df.columns:
@@ -110,7 +134,7 @@ if st.session_state.menu_tab == "Dopyty":
     else:
         for idx, row in active_df.iterrows():
             c_info, c_btn = st.columns([4, 1])
-            total_cena = round(float(row.get('Cena_Sluzby', 0.0)) + float(row.get('Cena_Cestovne', 0.0)), 2)
+            total_cena = round(float(row.get('Cena_Sluzby', 0.0)) + float(row.get('Cena_Cestovne', 0.0)) + float(row.get('Ubytovanie', 0.0)) + float(row.get('Strava', 0.0)), 2)
             with c_info:
                 card_html = (
                     f"<div class='card'>"
@@ -150,7 +174,12 @@ elif st.session_state.menu_tab == "Nová":
     default_krajina = item['Krajina'] if item and 'Krajina' in item else "Slovensko (SR)"
     default_miesto = item['Miesto'] if item and 'Miesto' in item else ""
     default_cesta = float(item.get('Cestovny_Cas', 1.0)) if item else 1.0
-    default_km = int(item.get('Km', 60)) if item else 60
+    default_ubytovanie = float(item.get('Ubytovanie', 0.0)) if item else 0.0
+    default_strava = float(item.get('Strava', 0.0)) if item else 0.0
+    
+    # Automatické vyhľadanie km podľa miesta v databáze
+    clean_miesto = default_miesto.strip().lower()
+    default_km = int(item.get('Km', DISTANCE_DATABASE.get(clean_miesto, 60))) if item else DISTANCE_DATABASE.get(clean_miesto, 60)
     
     try:
         default_datum = datetime.strptime(str(item['Datum_Akcie']), "%Y-%m-%d").date() if item and pd.notna(item.get('Datum_Akcie')) else datetime.now().date()
@@ -173,8 +202,22 @@ elif st.session_state.menu_tab == "Nová":
 
     default_poznamka = item['Poznamka'] if item and 'Poznamka' in item else ""
 
-    # SEKCIA 1: SLUŽBY A BLOKY (AUTOMATICKÝ PREPOČET HODÍN × SADZBA)
-    st.markdown("### 1. SLUŽBY A BLOKY (SI: 55 €/h, ostatné: 60 €/h)")
+    # SEKCIA 1: MIESTO A AUTOMATICKÉ KM
+    st.markdown("### 📍 Miesto a automatická lokalizácia")
+    col_l1, col_l2 = st.columns(2)
+    with col_l1:
+        krajina = st.radio("Krajina výjazdu", ["Slovensko (SR)", "Česká republika (ČR)"], horizontal=True, index=0 if default_krajina=="Slovensko (SR)" else 1)
+    with col_l2:
+        miesto = st.text_input("Miesto / Obec (z Dúbravky)", value=default_miesto)
+
+    # Automatické priradenie km na základe zadaného miesta
+    lookup_key = miesto.strip().lower()
+    auto_km_val = DISTANCE_DATABASE.get(lookup_key, default_km)
+
+    st.markdown("---")
+
+    # SEKCIA 2: SLUŽBY A BLOKY (ŽIVÝ AUTOMATICKÝ PREPOČET)
+    st.markdown("### 2. SLUŽBY A BLOKY (SI: 55 €/h, ostatné: 60 €/h)")
     
     total_sluzba_cena = 0.0
     total_hodiny = 0.0
@@ -188,6 +231,7 @@ elif st.session_state.menu_tab == "Nová":
         with col_b2:
             sel_hod = st.number_input(f"Hodiny {idx+1}", min_value=0.5, max_value=50.0, value=float(block["hodiny"]), step=0.5, key=f"hod_{idx}")
         
+        # Živý prepočet ceny priamo na základe hodín a hodinovej sadzby
         rate = HOURLY_RATES.get(sel_serv, 60.0)
         auto_calculated_price = round(sel_hod * rate, 2)
 
@@ -217,12 +261,12 @@ elif st.session_state.menu_tab == "Nová":
 
     st.markdown("---")
 
-    # SEKCIA 2: PRESNÝ TABUĽKOVÝ KALKULÁTOR CESTOVNÉHO
-    st.markdown("### 🚗 TABUĽKOVÝ KALKULÁTOR CESTOVNÉHO (Mitsubishi Outlander: 8.5 l nafta/100 km)")
+    # SEKCIA 3: CESTOVNÝ KALKULÁTOR (KM + AMORTIZÁCIA + PALIVO + ČAS)
+    st.markdown("### 🚗 TABUĽKOVÝ KALKULÁTOR CESTOVNÉHO (Mitsubishi Outlander: 8,5 l nafta/100 km)")
     
     col_k1, col_k2, col_k3, col_k4 = st.columns(4)
     with col_k1:
-        vzdialenost_km = st.number_input("Kilometre tam a späť (km)", min_value=0, max_value=2000, value=default_km, step=10)
+        vzdialenost_km = st.number_input("Kilometre tam a späť (km)", min_value=0, max_value=2000, value=auto_km_val, step=10)
     with col_k2:
         spotreba = st.number_input("Spotreba (l/100 km)", min_value=1.0, max_value=20.0, value=8.5, step=0.1)
     with col_k3:
@@ -251,9 +295,18 @@ elif st.session_state.menu_tab == "Nová":
 
     st.markdown("---")
 
-    # SEKCIA 3: VOĽNÝ TERMÍN A KROKOVANIE ČASU (+/-)
-    st.markdown("### 📅 VOĽNÝ TERMÍN A ČASY LOGISTIKY z Dúbravky")
-    
+    # SEKCIA 4: UBYTOVANIE A STRAVA
+    st.markdown("### 🏨 Ubytovanie a strava")
+    col_u1, col_u2 = st.columns(2)
+    with col_u1:
+        ubytovanie = st.number_input("Ubytowanie (€)", min_value=0.0, max_value=1000.0, value=default_ubytovanie, step=10.0)
+    with col_u2:
+        strava = st.number_input("Strava (€)", min_value=0.0, max_value=500.0, value=default_strava, step=5.0)
+
+    st.markdown("---")
+
+    # SEKCIA 5: DÁTUM A ČASY LOGISTIKY
+    st.markdown("### 📅 Dátum a časové krokovanie")
     col_d1, col_d2, col_d3 = st.columns(3)
     with col_d1:
         den = st.selectbox("Deň", list(range(1, 32)), index=default_datum.day - 1)
@@ -266,12 +319,6 @@ elif st.session_state.menu_tab == "Nová":
         datum_akcie = datetime(rok, mesiac, den).date()
     except Exception:
         datum_akcie = default_datum
-
-    col_l1, col_l2 = st.columns(2)
-    with col_l1:
-        krajina = st.radio("Krajina výjazdu", ["Slovensko (SR)", "Česká republika (ČR)"], horizontal=True, index=0 if default_krajina=="Slovensko (SR)" else 1)
-    with col_l2:
-        miesto = st.text_input("Miesto (z Dúbravky)", value=default_miesto)
 
     col_t1, col_t2 = st.columns(2)
     with col_t1:
@@ -294,12 +341,12 @@ elif st.session_state.menu_tab == "Nová":
 
     st.markdown("---")
 
-    # FINÁLNY SPOLOČNÝ SÚČET
-    celkova_suma = round(total_sluzba_cena + cena_cestovne, 2)
+    # FINÁLNY SPOLOČNÝ SÚČET NA FAKTÚRU
+    celkova_suma = round(total_sluzba_cena + cena_cestovne + ubytovanie + strava, 2)
     sum_box_html = (
         f"<div style='background-color: #e3f2fd; padding: 18px; border-radius: 10px; border: 2px solid #2196f3; margin-bottom: 20px;'>"
-        f"<h3 style='margin: 0; color: #0d47a1;'>Súčet služieb ({round(total_sluzba_cena, 2)} €) + Cestovné ({round(cena_cestovne, 2)} €) = "
-        f"Celková suma: <b>{celkova_suma} €</b></h3>"
+        f"<h3 style='margin: 0; color: #0d47a1;'>Súčet služieb ({round(total_sluzba_cena, 2)} €) + Cestovné ({round(cena_cestovne, 2)} €) "
+        f"+ Ubytovanie ({ubytovanie} €) + Strava ({strava} €) = Celková suma na FA: <b>{celkova_suma} €</b></h3>"
         f"</div>"
     )
     st.markdown(sum_box_html, unsafe_allow_html=True)
@@ -323,6 +370,8 @@ elif st.session_state.menu_tab == "Nová":
             st.session_state.dopyty.loc[idx, "Odchod"] = cas_odchodu_str
             st.session_state.dopyty.loc[idx, "Cena_Sluzby"] = total_sluzba_cena
             st.session_state.dopyty.loc[idx, "Cena_Cestovne"] = cena_cestovne
+            st.session_state.dopyty.loc[idx, "Ubytovanie"] = ubytovanie
+            st.session_state.dopyty.loc[idx, "Strava"] = strava
             st.session_state.dopyty.loc[idx, "Km"] = vzdialenost_km
             st.session_state.dopyty.loc[idx, "Poznamka"] = poznamka
             
@@ -346,6 +395,8 @@ elif st.session_state.menu_tab == "Nová":
                 "Odchod": cas_odchodu_str,
                 "Cena_Sluzby": total_sluzba_cena,
                 "Cena_Cestovne": cena_cestovne,
+                "Ubytovanie": ubytovanie,
+                "Strava": strava,
                 "Km": vzdialenost_km,
                 "Stav": "Nová",
                 "Poznamka": poznamka
@@ -365,13 +416,13 @@ elif st.session_state.menu_tab == "Pipeline":
         st.info("Zatiaľ žiadne termíny v kalendári. Spracujte a dokončite dopyty zo záložky Dopyty.")
     else:
         for idx, row in cal_df.iterrows():
-            total_cena = round(float(row.get('Cena_Sluzby', 0.0)) + float(row.get('Cena_Cestovne', 0.0)), 2)
+            total_cena = round(float(row.get('Cena_Sluzby', 0.0)) + float(row.get('Cena_Cestovne', 0.0)) + float(row.get('Ubytovanie', 0.0)) + float(row.get('Strava', 0.0)), 2)
             cal_html = (
                 f"<div class='card-calendar'>"
                 f"<h4>📅 {row['Datum_Akcie']} o {row['Cas']} — {row['Sluzby']} ({row['Miesto']}, {row['Krajina']})</h4>"
                 f"<p><b>Logistika z Dúbravky:</b> Odchod o <b>{row.get('Odchod', '08:00')}</b> | Cesta: {row.get('Cestovny_Cas', 1.0)} hod. | <b>Trvanie:</b> {row['Hodiny']} hod.</p>"
-                f"<p><b>Fakturácia:</b> Služby ({row.get('Cena_Sluzby', 0.0)} €) + Cestovné ({row.get('Cena_Cestovne', 0.0)} €) = "
-                f"<b>Celkom {total_cena} €</b> (Vzdialenosť: {row.get('Km', 0)} km)</p>"
+                f"<p><b>Fakturácia:</b> Služby ({row.get('Cena_Sluzby', 0.0)} €) + Cestovné ({row.get('Cena_Cestovne', 0.0)} €) "
+                f"+ Ubytovanie ({row.get('Ubytovanie', 0.0)} €) + Strava ({row.get('Strava', 0.0)} €) = <b>Celkom {total_cena} €</b> (Vzdialenosť: {row.get('Km', 0)} km)</p>"
                 f"<p><i>{row['Poznamka']}</i></p>"
                 f"</div>"
             )
