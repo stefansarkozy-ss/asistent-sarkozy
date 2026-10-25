@@ -3,18 +3,9 @@ import pandas as pd
 import os
 from datetime import datetime, timedelta
 
-# Importy pre Google Calendar API
-try:
-    from google.oauth2 import service_account
-    from googleapiclient.discovery import build
-    GOOGLE_API_AVAILABLE = True
-except ImportError:
-    GOOGLE_API_AVAILABLE = False
-
 st.set_page_config(page_title="Asistent Štefana Šarközyho", layout="wide", page_icon="💼")
 
 DATA_FILE = "dopyty.csv"
-CREDENTIALS_FILE = "credentials.json"  # Súbor so servisným účtom Google API (ak je k dispozícii)
 
 INITIAL_DATA = [
     {"ID": 1, "Datum_Vytvorenia": "2026-10-25 10:15", "Sluzby": "SI - individuálna supervízia", "Hodiny": 4.0, "Miesto": "Cífer", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-02", "Cas": "09:00", "Cestovny_Cas": 1.0, "Odchod": "08:00", "Cena_Sluzby": 220.0, "Cena_Cestovne": 45.0, "Ubytovanie": 0.0, "Strava": 0.0, "Km": 100, "Stav": "Nová", "Poznamka": "p | Fakturácia: 265"},
@@ -100,32 +91,6 @@ def clear_form_state():
         if k.startswith("serv_") or k.startswith("hod_") or k.startswith("cena_") or k.startswith("prev_") or k in keys_to_clear:
             del st.session_state[k]
 
-def add_to_google_calendar_api(title, date_str, time_str, duration_hours, location, description):
-    """Priame uloženie do Google Kalendára cez API (ak existuje credentials.json)"""
-    if not GOOGLE_API_AVAILABLE or not os.path.exists(CREDENTIALS_FILE):
-        return False, "Súbor credentials.json pre Google API nebol nájdený. Uložilo sa lokálne do Pipeline."
-    
-    try:
-        SCOPES = ['https://www.googleapis.com/auth/calendar']
-        creds = service_account.Credentials.from_service_account_file(CREDENTIALS_FILE, scopes=SCOPES)
-        service = build('calendar', 'v3', credentials=creds)
-
-        dt_start = datetime.strptime(f"{date_str} {time_str}", "%Y-%m-%d %H:%M")
-        dt_end = dt_start + timedelta(hours=float(duration_hours))
-
-        event = {
-            'summary': title,
-            'location': location,
-            'description': description,
-            'start': {'dateTime': dt_start.isoformat(), 'timeZone': 'Europe/Bratislava'},
-            'end': {'dateTime': dt_end.isoformat(), 'timeZone': 'Europe/Bratislava'},
-        }
-
-        service.events().insert(calendarId='primary', body=event).execute()
-        return True, "Udalosť bola úspešne vytvorená priamo v Google Kalendári!"
-    except Exception as e:
-        return False, f"Chyba pri Google API: {str(e)}"
-
 if "dopyty" not in st.session_state:
     st.session_state.dopyty = load_data()
 
@@ -153,7 +118,7 @@ st.markdown("""
 
 st.title("💼 Asistent Štefana Šarközyho")
 
-tabs_options = ["Dopyty", "Nová", "Pipeline", "Predfaktúry", "Klienti", "AI Engine", "Export"]
+tabs_options = ["Dopyty", "Nová", "Pipeline", "Klienti", "AI Engine", "Export"]
 
 if st.session_state.menu_tab not in tabs_options:
     st.session_state.menu_tab = "Dopyty"
@@ -438,15 +403,128 @@ elif st.session_state.menu_tab == "Nová":
 
     combined_services_str = " + ".join([b["sluzba"] for b in st.session_state.service_blocks])
 
-    btn_label = "💾 Dokončiť a uložiť do kalendára + Vygenerovať predfaktúru" if item else "💾 Uložiť dopyt"
-    if st.button(btn_label, type="primary"):
-        gcal_details = (
-            f"Služby: {round(total_sluzba_cena, 2)} €\n"
-            f"Cestovné: {round(cena_cestovne, 2)} € ({vzdialenost_km} km, Cestovný čas: {cestovny_cas} hod.)\n"
-            f"Ubytovanie: {ubytovanie} €\n"
-            f"Strava: {strava} €\n"
-            f"Celková suma na FA: {celkova_suma} €\n\n"
-            f"Poznámka: {poznamka}"
+    # Zobrazenie predfaktúry, ak bola práve vygenerovaná
+    if st.session_state.get("last_predfaktura"):
+        pf = st.session_state.last_predfaktura
+        predfaktura_html = (
+            f"<div class='predfaktura-box'>"
+            f"<h3>📄 VYÚČTOVANIE / PREDFAKTÚRA</h3>"
+            f"<p><b>Miesto:</b> {pf['Miesto']} ({pf['Krajina']}) | <b>Termín:</b> {pf['Datum']} o {pf['Cas']}</p>"
+            f"<hr>"
+            f"<p><b>Služby:</b> {pf['Sluzby_Str']} — <b>{pf['Cena_Sluzby']} €</b></p>"
+            f"<p><b>Cestovné náhrady (km + palivo + čas):</b> <b>{pf['Cena_Cestovne']} €</b></p>"
+            f"<p><b>Ubytovanie:</b> <b>{pf['Ubytovanie']} €</b></p>"
+            f"<p><b>Strava:</b> <b>{pf['Strava']} €</b></p>"
+            f"<hr>"
+            f"<h4>Celková suma na faktúru: <span style='color: #d9480f;'>{pf['Celkova_Suma']} €</span></h4>"
+            f"</div>"
         )
+        st.markdown(predfaktura_html, unsafe_allow_html=True)
 
-        #
+    btn_label = "💾 Dokončiť, uložiť do kalendára a vygenerovať predfaktúru" if item else "💾 Uložiť dopyt"
+    if st.button(btn_label, type="primary"):
+        if item:
+            idx = st.session_state.dopyty[st.session_state.dopyty["ID"] == item['ID']].index
+            st.session_state.dopyty.loc[idx, "Stav"] = "Kalendár"
+            st.session_state.dopyty.loc[idx, "Sluzby"] = combined_services_str
+            st.session_state.dopyty.loc[idx, "Hodiny"] = total_hodiny
+            st.session_state.dopyty.loc[idx, "Miesto"] = miesto
+            st.session_state.dopyty.loc[idx, "Krajina"] = krajina
+            st.session_state.dopyty.loc[idx, "Datum_Akcie"] = str(datum_akcie)
+            st.session_state.dopyty.loc[idx, "Cas"] = cas_akcie_str
+            st.session_state.dopyty.loc[idx, "Cestovny_Cas"] = cestovny_cas
+            st.session_state.dopyty.loc[idx, "Odchod"] = cas_odchodu_str
+            st.session_state.dopyty.loc[idx, "Cena_Sluzby"] = total_sluzba_cena
+            st.session_state.dopyty.loc[idx, "Cena_Cestovne"] = cena_cestovne
+            st.session_state.dopyty.loc[idx, "Ubytovanie"] = ubytovanie
+            st.session_state.dopyty.loc[idx, "Strava"] = strava
+            st.session_state.dopyty.loc[idx, "Km"] = vzdialenost_km
+            st.session_state.dopyty.loc[idx, "Poznamka"] = poznamka
+            
+            save_data(st.session_state.dopyty)
+
+            # Uloženie dát pre predfaktúru do session
+            st.session_state.last_predfaktura = {
+                "Miesto": miesto, "Krajina": krajina, "Datum": str(datum_akcie), "Cas": cas_akcie_str,
+                "Sluzby_Str": combined_services_str, "Cena_Sluzby": round(total_sluzba_cena, 2),
+                "Cena_Cestovne": round(cena_cestovne, 2), "Ubytovanie": ubytovanie, "Strava": strava,
+                "Celkova_Suma": celkova_suma
+            }
+            st.success(f"Dopyt #{item['ID']} bol úspešne uložený do kalendára a predfaktúra bola vygenerovaná!")
+            st.rerun()
+        else:
+            novy_id = int(st.session_state.dopyty["ID"].max() + 1) if not st.session_state.dopyty.empty else 1
+            novy_riadok = {
+                "ID": novy_id,
+                "Datum_Vytvorenia": datetime.now().strftime("%Y-%m-%d %H:%M"),
+                "Sluzby": combined_services_str,
+                "Hodiny": total_hodiny,
+                "Miesto": miesto,
+                "Krajina": krajina,
+                "Datum_Akcie": str(datum_akcie),
+                "Cas": cas_akcie_str,
+                "Cestovny_Cas": cestovny_cas,
+                "Odchod": cas_odchodu_str,
+                "Cena_Sluzby": total_sluzba_cena,
+                "Cena_Cestovne": cena_cestovne,
+                "Ubytovanie": ubytovanie,
+                "Strava": strava,
+                "Km": vzdialenost_km,
+                "Stav": "Kalendár",
+                "Poznamka": poznamka
+            }
+            st.session_state.dopyty = pd.concat([st.session_state.dopyty, pd.DataFrame([novy_riadok])], ignore_index=True)
+            save_data(st.session_state.dopyty)
+            clear_form_state()
+            st.success(f"Nová požiadavka pre '{miesto}' bola automaticky uložená do kalendára!")
+            st.session_state.menu_tab = "Pipeline"
+            st.rerun()
+
+elif st.session_state.menu_tab == "Pipeline":
+    st.header("📅 Kalendár a Prehľad potvrdených termínov")
+    df = st.session_state.dopyty
+    cal_df = df[df["Stav"] == "Kalendár"].sort_values(by="Datum_Akcie")
+    
+    if cal_df.empty:
+        st.info("Zatiaľ žiadne termíny v kalendári.")
+    else:
+        for idx, row in cal_df.iterrows():
+            total_cena = round(float(row.get('Cena_Sluzby', 0.0)) + float(row.get('Cena_Cestovne', 0.0)) + float(row.get('Ubytovanie', 0.0)) + float(row.get('Strava', 0.0)), 2)
+
+            cal_html = (
+                f"<div class='card-calendar'>"
+                f"<h4>📅 {row['Datum_Akcie']} o {row['Cas']} — {row['Sluzby']} ({row['Miesto']}, {row['Krajina']})</h4>"
+                f"<p><b>Logistika z Dúbravky:</b> Odchod o <b>{row.get('Odchod', '08:00')}</b> | Cesta: {row.get('Cestovny_Cas', 1.0)} hod. | <b>Trvanie:</b> {row['Hodiny']} hod.</p>"
+                f"<p><b>Fakturácia:</b> Služby ({row.get('Cena_Sluzby', 0.0)} €) + Cestovné ({row.get('Cena_Cestovne', 0.0)} €) "
+                f"+ Ubytovanie ({row.get('Ubytovanie', 0.0)} €) + Strava ({row.get('Strava', 0.0)} €) = <b>Celkom {total_cena} €</b> (Vzdialenosť: {row.get('Km', 0)} km)</p>"
+                f"<p><i>{row['Poznamka']}</i></p>"
+                f"</div>"
+            )
+            st.markdown(cal_html, unsafe_allow_html=True)
+            
+            if st.button(f"🔄 Vrátiť do spracovania (#{row['ID']})", key=f"revert_{row['ID']}"):
+                d_idx = st.session_state.dopyty[st.session_state.dopyty["ID"] == row['ID']].index
+                st.session_state.dopyty.loc[d_idx, "Stav"] = "Nová"
+                save_data(st.session_state.dopyty)
+                st.success(f"Dopyt #{row['ID']} bol vrátený do spracovania!")
+                st.rerun()
+            st.write("---")
+
+elif st.session_state.menu_tab == "Klienti":
+    st.header("👥 Klienti a partneri")
+    st.info("Modul pre správu kontaktov a inštitúcií.")
+
+elif st.session_state.menu_tab == "AI Engine":
+    st.header("🤖 AI Engine")
+    st.info("Modul pre pokročilú analýzu dopytov.")
+
+elif st.session_state.menu_tab == "Export":
+    st.header("📤 Export dát")
+    st.write(f"Dátový súbor: `{DATA_FILE}`")
+    if st.button("🔄 Obnoviť pôvodné testovacie dáta"):
+        df_init = pd.DataFrame(INITIAL_DATA)
+        save_data(df_init)
+        st.session_state.dopyty = df_init
+        clear_form_state()
+        st.success("Testovacie dáta boli obnovené!")
+        st.rerun()
