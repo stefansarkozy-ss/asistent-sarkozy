@@ -7,17 +7,17 @@ st.set_page_config(page_title="Asistent Štefana Šarközyho", layout="wide", pa
 
 DATA_FILE = "dopyty.csv"
 
-# Reálne dáta podľa tvojho zoznamu
+# Presné dáta podľa poskytnutého zoznamu
 INITIAL_DATA = [
-    {"ID": 1, "Datum_Vytvorenia": "2026-10-25 09:00", "Sluzba": "SI - Supervízia", "Hodiny": 4.0, "Miesto": "Cífer", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-02", "Cas": "09:00", "Stav": "Nová", "Poznamka": "Fakturácia: 240"},
-    {"ID": 2, "Datum_Vytvorenia": "2026-10-25 09:15", "Sluzba": "SI - Supervízia", "Hodiny": 4.0, "Miesto": "CDR Piešťany", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-04", "Cas": "10:00", "Stav": "Nová", "Poznamka": "Fakturácia: 240"},
-    {"ID": 3, "Datum_Vytvorenia": "2026-10-25 09:30", "Sluzba": "SI - Supervízia", "Hodiny": 4.0, "Miesto": "KC Pribeta", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-06", "Cas": "09:30", "Stav": "V riešení", "Poznamka": "Dohoda, Fakturácia: 240"},
-    {"ID": 4, "Datum_Vytvorenia": "2026-10-25 09:45", "Sluzba": "SI - Supervízia", "Hodiny": 3.0, "Miesto": "KC Šaľa", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-08", "Cas": "10:00", "Stav": "Potvrdená", "Poznamka": "Fakturácia: 180"},
-    {"ID": 5, "Datum_Vytvorenia": "2026-10-25 10:00", "Sluzba": "SI - Supervízia", "Hodiny": 5.0, "Miesto": "DSS Javorník", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-10", "Cas": "09:00", "Stav": "Nová", "Poznamka": "Fakturácia: 300"},
-    {"ID": 6, "Datum_Vytvorenia": "2026-10-25 10:15", "Sluzba": "SI - Supervízia", "Hodiny": 25.0, "Miesto": "Pezinok OSPOD", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-15", "Cas": "08:30", "Stav": "Potvrdená", "Poznamka": "Dohoda, Fakturácia: 1500"},
-    {"ID": 7, "Datum_Vytvorenia": "2026-10-25 10:30", "Sluzba": "SI - Supervízia", "Hodiny": 6.0, "Miesto": "CDR Pezinok", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-18", "Cas": "09:00", "Stav": "Nová", "Poznamka": "Fakturácia: 360"},
-    {"ID": 8, "Datum_Vytvorenia": "2026-10-25 10:45", "Sluzba": "SI - Supervízia", "Hodiny": 4.0, "Miesto": "KC Jelka", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-20", "Cas": "10:00", "Stav": "Nová", "Poznamka": "Základný dopyt Jelka"},
-    {"ID": 9, "Datum_Vytvorenia": "2026-10-25 11:00", "Sluzba": "SI - Supervízia", "Hodiny": 10.0, "Miesto": "Partizánske", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-22", "Cas": "09:00", "Stav": "Potvrdená", "Poznamka": "Fakturácia: 600"}
+    {"ID": 1, "Datum_Vytvorenia": "2026-10-25 09:00", "Sluzba": "supv", "Hodiny": 4.0, "Miesto": "Cífer", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-02", "Cas": "09:00", "Stav": "Nová", "Poznamka": "p | Fakturácia: 240"},
+    {"ID": 2, "Datum_Vytvorenia": "2026-10-25 09:15", "Sluzba": "supv", "Hodiny": 4.0, "Miesto": "CDR piešťany", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-04", "Cas": "10:00", "Stav": "Nová", "Poznamka": "p | Fakturácia: 240"},
+    {"ID": 3, "Datum_Vytvorenia": "2026-10-25 09:30", "Sluzba": "supv", "Hodiny": 4.0, "Miesto": "KC Príbeta", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-06", "Cas": "09:30", "Stav": "V riešení", "Poznamka": "o | dohoda | Fakturácia: 240"},
+    {"ID": 4, "Datum_Vytvorenia": "2026-10-25 09:45", "Sluzba": "supv", "Hodiny": 3.0, "Miesto": "KC Šaľa", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-08", "Cas": "10:00", "Stav": "Potvrdená", "Poznamka": "p | Fakturácia: 180"},
+    {"ID": 5, "Datum_Vytvorenia": "2026-10-25 10:00", "Sluzba": "supv", "Hodiny": 5.0, "Miesto": "dss javirinska", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-10", "Cas": "09:00", "Stav": "Nová", "Poznamka": "p | Fakturácia: 300"},
+    {"ID": 6, "Datum_Vytvorenia": "2026-10-25 10:15", "Sluzba": "supv", "Hodiny": 25.0, "Miesto": "pezinok Ospod", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-15", "Cas": "08:30", "Stav": "Potvrdená", "Poznamka": "p | dohoda | Fakturácia: 1500"},
+    {"ID": 7, "Datum_Vytvorenia": "2026-10-25 10:30", "Sluzba": "supv", "Hodiny": 6.0, "Miesto": "CDR pezinok", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-18", "Cas": "09:00", "Stav": "Nová", "Poznamka": "p | Fakturácia: 360"},
+    {"ID": 8, "Datum_Vytvorenia": "2026-10-25 10:45", "Sluzba": "supv", "Hodiny": 4.0, "Miesto": "Kc Jelka", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-20", "Cas": "10:00", "Stav": "Nová", "Poznamka": "Základný dopyt Jelka"},
+    {"ID": 9, "Datum_Vytvorenia": "2026-10-25 11:00", "Sluzba": "supv", "Hodiny": 10.0, "Miesto": "Partizanske", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-22", "Cas": "09:00", "Stav": "Potvrdená", "Poznamka": "p | Fakturácia: 600"}
 ]
 
 def load_data():
@@ -38,7 +38,6 @@ def save_data(df):
 if "dopyty" not in st.session_state:
     st.session_state.dopyty = load_data()
 
-# Čistý dizajn ladiaci so svetlým rozhraním aplikácie
 st.markdown("""
     <style>
     .card { background-color: #f8f9fa; padding: 18px; border-radius: 10px; margin-bottom: 12px; border: 1px solid #e0e0e0; border-left: 5px solid #ff4b4b; }
@@ -86,7 +85,7 @@ with tabs[0]:
 
 with tabs[1]:
     st.header("1. Služby a bloky")
-    sluzba = st.selectbox("Služba", ["SI - Supervízia", "SK - Kolektívna supervízia", "Krízová intervencia", "Koučing", "Vzdelávanie / Lektorovanie"])
+    sluzba = st.selectbox("Služba", ["supv", "SI - Supervízia", "SK - Kolektívna supervízia", "Krízová intervencia", "Koučing"])
     hodiny = st.number_input("Hodiny", min_value=1.0, max_value=50.0, value=4.0, step=0.5)
 
     st.header("2. Voľný termín a logistika (z Dúbravky)")
@@ -94,7 +93,7 @@ with tabs[1]:
     with col1:
         krajina = st.radio("Krajina výjazdu", ["Slovensko (SR)", "Česká republika (ČR)"], horizontal=True)
     with col2:
-        miesto = st.text_input("Miesto / Obec (voľný text)", value="Jelka")
+        miesto = st.text_input("Miesto / Obec (voľný text)", value="")
 
     col_d, col_t = st.columns(2)
     with col_d:
