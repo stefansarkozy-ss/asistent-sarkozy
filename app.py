@@ -86,7 +86,7 @@ def clear_form_state():
         "last_auto_cestovne_calc", "h_akcia", "m_akcia", "h_odchod", "m_odchod",
         "krajina_radio_key", "miesto_input_key", "spotreba_key", "cena_paliva_key",
         "amort_key", "cestovny_cas_key", "sadzba_casy_key", "ubytovanie_key", "strava_key", 
-        "den_key", "mesiac_key", "rok_key", "poznamka_key"
+        "den_key", "mesiac_key", "rok_key", "poznamka_key", "last_calc_inputs"
     ]
     for k in list(st.session_state.keys()):
         if k.startswith("serv_") or k.startswith("hod_") or k.startswith("cena_") or k.startswith("prev_") or k in keys_to_clear:
@@ -324,60 +324,7 @@ elif st.session_state.menu_tab == "Nová":
 
     st.markdown("---")
 
-    # SEKCIA 3: CESTOVNÝ KALKULÁTOR (KM + AMORTIZÁCIA + PALIVO + CESTOVNÝ ČAS S STEP 0.5)
-    st.markdown("### 🚗 TABUĽKOVÝ KALKULÁTOR CESTOVNÉHO (Mitsubishi Outlander: 8,5 l nafta/100 km)")
-    
-    col_k1, col_k2, col_k3, col_k4 = st.columns(4)
-    with col_k1:
-        vzdialenost_km = st.number_input("Kilometre tam a späť (km)", min_value=0, max_value=2000, step=10, key=km_key)
-    with col_k2:
-        spotreba = st.number_input("Spotreba (l/100 km)", min_value=1.0, max_value=20.0, value=8.5, step=0.1, key="spotreba_key")
-    with col_k3:
-        cena_paliva = st.number_input("Cena nafty (€/l)", min_value=0.5, max_value=3.0, value=1.55, step=0.01, key="cena_paliva_key")
-    with col_k4:
-        amortizacia_rate = st.number_input("Zákonná amortizácia (€/km)", min_value=0.1, max_value=1.0, value=LEGAL_AMORTIZATION_PER_KM, step=0.001, format="%.3f", key="amort_key")
-
-    col_cc1, col_cc2 = st.columns(2)
-    with col_cc1:
-        cestovny_cas = st.number_input("Cestovný čas (hod. z Dúbravky)", min_value=0.0, max_value=10.0, value=default_cesta, step=0.5, key="cestovny_cas_key")
-    with col_cc2:
-        sadzba_cestovneho_casu = st.number_input("Sadzba za cestovný čas (€/hod)", min_value=0.0, max_value=100.0, value=15.0, step=1.0, key="sadzba_casy_key")
-
-    vypocet_amortizacia = vzdialenost_km * amortizacia_rate
-    vypocet_palivo = (spotreba / 100.0) * vzdialenost_km * cena_paliva
-    vypocet_cestovny_cas = cestovny_cas * sadzba_cestovneho_casu
-    auto_cestovne_total = round(vypocet_amortizacia + vypocet_palivo + vypocet_cestovny_cas, 2)
-
-    cestovne_key = "cena_cestovne_val"
-    if "last_auto_cestovne_calc" not in st.session_state or st.session_state.get("last_auto_cestovne_calc") != auto_cestovne_total:
-        st.session_state["last_auto_cestovne_calc"] = auto_cestovne_total
-        st.session_state[cestovne_key] = auto_cestovne_total
-
-    calc_box_html = (
-        f"<div class='calc-box'>"
-        f"<p style='margin:0;'><b>Rozpis cestovných náhrad:</b> Amortizácia ({vzdialenost_km} km × {amortizacia_rate} €) = "
-        f"<b>{round(vypocet_amortizacia, 2)} €</b> | Palivo ({vzdialenost_km} km × {spotreba} l/100 × {cena_paliva} €) = "
-        f"<b>{round(vypocet_palivo, 2)} €</b> | Cestovný čas ({cestovny_cas} hod. × {sadzba_cestovneho_casu} €/h) = "
-        f"<b>{round(vypocet_cestovny_cas, 2)} €</b></p>"
-        f"</div>"
-    )
-    st.markdown(calc_box_html, unsafe_allow_html=True)
-
-    cena_cestovne = st.number_input("Výsledné cestovné (€) - automatický výpočet", min_value=0.0, max_value=2000.0, step=5.0, key=cestovne_key)
-
-    st.markdown("---")
-
-    # SEKCIA 4: UBYTOVANIE A STRAVA
-    st.markdown("### 🏨 Ubytovanie a strava")
-    col_u1, col_u2 = st.columns(2)
-    with col_u1:
-        ubytovanie = st.number_input("Ubytovanie (€)", min_value=0.0, max_value=1000.0, value=default_ubytovanie, step=10.0, key="ubytovanie_key")
-    with col_u2:
-        strava = st.number_input("Strava (€)", min_value=0.0, max_value=500.0, value=default_strava, step=5.0, key="strava_key")
-
-    st.markdown("---")
-
-    # SEKCIA 5: DÁTUM A ČASY LOGISTIKY
+    # SEKCIA 3: DÁTUM A ČASY LOGISTIKY (PRESUNUTÉ VYŠŠIE)
     st.markdown("### 📅 Dátum a časové krokovanie")
     col_d1, col_d2, col_d3 = st.columns(3)
     with col_d1:
@@ -410,6 +357,65 @@ elif st.session_state.menu_tab == "Nová":
 
     cas_akcie_str = f"{h_akcia:02d}:{m_akcia:02d}"
     cas_odchodu_str = f"{h_odchod:02d}:{m_odchod:02d}"
+
+    st.markdown("---")
+
+    # SEKCIA 4: CESTOVNÝ KALKULÁTOR (KM + AMORTIZÁCIA + PALIVO + CESTOVNÝ ČAS S STEP 0.5 A PLNOU REAKTIVITOU)
+    st.markdown("### 🚗 TABUĽKOVÝ KALKULÁTOR CESTOVNÉHO (Mitsubishi Outlander: 8,5 l nafta/100 km)")
+    
+    col_k1, col_k2, col_k3, col_k4 = st.columns(4)
+    with col_k1:
+        vzdialenost_km = st.number_input("Kilometre tam a späť (km)", min_value=0, max_value=2000, step=10, key=km_key)
+    with col_k2:
+        spotreba = st.number_input("Spotreba (l/100 km)", min_value=1.0, max_value=20.0, value=8.5, step=0.1, key="spotreba_key")
+    with col_k3:
+        cena_paliva = st.number_input("Cena nafty (€/l)", min_value=0.5, max_value=3.0, value=1.95, step=0.01, key="cena_paliva_key")
+    with col_k4:
+        amortizacia_rate = st.number_input("Zákonná amortizácia (€/km)", min_value=0.1, max_value=1.0, value=LEGAL_AMORTIZATION_PER_KM, step=0.001, format="%.3f", key="amort_key")
+
+    col_cc1, col_cc2 = st.columns(2)
+    with col_cc1:
+        cestovny_cas = st.number_input("Cestovný čas (hod. z Dúbravky)", min_value=0.0, max_value=10.0, value=default_cesta, step=0.5, key="cestovny_cas_key")
+    with col_cc2:
+        sadzba_cestovneho_casu = st.number_input("Sadzba za cestovný čas (€/hod)", min_value=0.0, max_value=100.0, value=15.0, step=1.0, key="sadzba_casy_key")
+
+    vypocet_amortizacia = vzdialenost_km * amortizacia_rate
+    vypocet_palivo = (spotreba / 100.0) * vzdialenost_km * cena_paliva
+    vypocet_cestovny_cas = cestovny_cas * sadzba_cestovneho_casu
+    auto_cestovne_total = round(vypocet_amortizacia + vypocet_palivo + vypocet_cestovny_cas, 2)
+
+    cestovne_key = "cena_cestovne_val"
+    
+    # Automatická reaktivita pre kalkulátor cestovného a času na ceste
+    calc_inputs_tuple = (vzdialenost_km, spotreba, cena_paliva, amortizacia_rate, cestovny_cas, sadzba_cestovneho_casu)
+    if "last_calc_inputs" not in st.session_state:
+        st.session_state["last_calc_inputs"] = calc_inputs_tuple
+        st.session_state[cestovne_key] = auto_cestovne_total
+    elif st.session_state["last_calc_inputs"] != calc_inputs_tuple:
+        st.session_state["last_calc_inputs"] = calc_inputs_tuple
+        st.session_state[cestovne_key] = auto_cestovne_total
+
+    calc_box_html = (
+        f"<div class='calc-box'>"
+        f"<p style='margin:0;'><b>Rozpis cestovných náhrad:</b> Amortizácia ({vzdialenost_km} km × {amortizacia_rate} €) = "
+        f"<b>{round(vypocet_amortizacia, 2)} €</b> | Palivo ({vzdialenost_km} km × {spotreba} l/100 × {cena_paliva} €) = "
+        f"<b>{round(vypocet_palivo, 2)} €</b> | Cestovný čas ({cestovny_cas} hod. × {sadzba_cestovneho_casu} €/h) = "
+        f"<b>{round(vypocet_cestovny_cas, 2)} €</b></p>"
+        f"</div>"
+    )
+    st.markdown(calc_box_html, unsafe_allow_html=True)
+
+    cena_cestovne = st.number_input("Výsledné cestovné (€) - automatický výpočet", min_value=0.0, max_value=2000.0, step=5.0, key=cestovne_key)
+
+    st.markdown("---")
+
+    # SEKCIA 5: UBYTOVANIE A STRAVA (SÚČASŤ VÝDAVKOVÝCH NÁHRAD PRED UZAVRETÍM)
+    st.markdown("### 🏨 Ubytovanie a strava")
+    col_u1, col_u2 = st.columns(2)
+    with col_u1:
+        ubytovanie = st.number_input("Ubytovanie (€)", min_value=0.0, max_value=1000.0, value=default_ubytovanie, step=10.0, key="ubytovanie_key")
+    with col_u2:
+        strava = st.number_input("Strava (€)", min_value=0.0, max_value=500.0, value=default_strava, step=5.0, key="strava_key")
 
     st.markdown("---")
 
