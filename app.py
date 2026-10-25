@@ -37,8 +37,8 @@ def save_data(df):
 if "dopyty" not in st.session_state:
     st.session_state.dopyty = load_data()
 
-if "nav_tab" not in st.session_state:
-    st.session_state.nav_tab = "📋 Dopyty"
+if "active_tab" not in st.session_state:
+    st.session_state.active_tab = "📋 Dopyty"
 
 if "edit_item" not in st.session_state:
     st.session_state.edit_item = None
@@ -52,9 +52,11 @@ st.markdown("""
 
 st.title("💼 Asistent Štefana Šarközyho")
 
-# Programmatická navigácia ako záložky
 tabs_options = ["📋 Dopyty", "➕ Nová požiadavka", "📊 Pipeline", "👥 Klienti", "⚙️ Nastavenia"]
-selected_tab = st.radio("Navigácia", tabs_options, horizontal=True, key="nav_tab", label_visibility="collapsed")
+current_index = tabs_options.index(st.session_state.active_tab) if st.session_state.active_tab in tabs_options else 0
+
+selected_tab = st.radio("Navigácia", tabs_options, index=current_index, horizontal=True, label_visibility="collapsed")
+st.session_state.active_tab = selected_tab
 
 st.divider()
 
@@ -89,7 +91,7 @@ if selected_tab == "📋 Dopyty":
                 st.write("")
                 if st.button("📅 Spracovať", key=f"btn_proc_{row['ID']}"):
                     st.session_state.edit_item = row.to_dict()
-                    st.session_state.nav_tab = "➕ Nová požiadavka"
+                    st.session_state.active_tab = "➕ Nová požiadavka"
                     st.rerun()
 
 elif selected_tab == "➕ Nová požiadavka":
@@ -137,7 +139,6 @@ elif selected_tab == "➕ Nová požiadavka":
     btn_label = "💾 Dokončiť, vymazať z dopytov a posunúť do kalendára" if item else "💾 Uložiť dopyt do zoznamu"
     if st.button(btn_label, type="primary"):
         if item:
-            # Odstránenie zo zoznamu dopytov
             st.session_state.dopyty = st.session_state.dopyty[st.session_state.dopyty["ID"] != item['ID']]
             save_data(st.session_state.dopyty)
             st.session_state.edit_item = None
@@ -160,7 +161,7 @@ elif selected_tab == "➕ Nová požiadavka":
             save_data(st.session_state.dopyty)
             st.success(f"Dopyt pre '{miesto}' bol uložený pod ID {novy_id}!")
         
-        st.session_state.nav_tab = "📋 Dopyty"
+        st.session_state.active_tab = "📋 Dopyty"
         st.rerun()
 
 elif selected_tab == "📊 Pipeline":
