@@ -209,7 +209,16 @@ if st.session_state.menu_tab == "Dopyty":
 elif st.session_state.menu_tab == "Nová":
     item = st.session_state.edit_item
     if item:
-        st.header(f"⚙️ Dokončenie a úprava dopytu #{item['ID']} ({item['Miesto']})")
+        col_h1, col_h2 = st.columns([4, 1])
+        with col_h1:
+            st.header(f"⚙️ Dokončenie a úprava dopytu #{item['ID']} ({item['Miesto']})")
+        with col_h2:
+            st.write("")
+            if st.button("⬅️ Krok späť / Zrušiť"):
+                st.session_state.edit_item = None
+                clear_form_state()
+                st.session_state.menu_tab = "Dopyty"
+                st.rerun()
     else:
         st.header("➕ Nová požiadavka")
 
@@ -515,7 +524,17 @@ elif st.session_state.menu_tab == "Pipeline":
                 f"</div>"
             )
             st.markdown(cal_html, unsafe_allow_html=True)
-            st.link_button(f"📅 Pridať do Google Kalendára (#{row['ID']})", gcal_url)
+            
+            col_btn1, col_btn2 = st.columns([2, 2])
+            with col_btn1:
+                st.link_button(f"📅 Pridať do Google Kalendára (#{row['ID']})", gcal_url)
+            with col_btn2:
+                if st.button(f"🔄 Vrátiť do spracovania (#{row['ID']})", key=f"revert_{row['ID']}"):
+                    d_idx = st.session_state.dopyty[st.session_state.dopyty["ID"] == row['ID']].index
+                    st.session_state.dopyty.loc[d_idx, "Stav"] = "Nová"
+                    save_data(st.session_state.dopyty)
+                    st.success(f"Dopyt #{row['ID']} bol vrátený do spracovania!")
+                    st.rerun()
             st.write("---")
 
 elif st.session_state.menu_tab == "Klienti":
