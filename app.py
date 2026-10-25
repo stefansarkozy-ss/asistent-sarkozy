@@ -79,6 +79,18 @@ def load_data():
 def save_data(df):
     df.to_csv(DATA_FILE, index=False)
 
+def clear_form_state():
+    keys_to_clear = [
+        "vzdialenost_km_val", "cena_cestovne_val", "last_miesto_val", 
+        "last_auto_cestovne_calc", "h_akcia", "m_akcia", "h_odchod", "m_odchod",
+        "krajina_radio_key", "miesto_input_key", "spotreba_key", "cena_paliva_key",
+        "amort_key", "cestovny_cas_key", "ubytovanie_key", "strava_key", 
+        "den_key", "mesiac_key", "rok_key", "poznamka_key"
+    ]
+    for k in list(st.session_state.keys()):
+        if k.startswith("serv_") or k.startswith("hod_") or k.startswith("cena_") or k.startswith("prev_") or k in keys_to_clear:
+            del st.session_state[k]
+
 if "dopyty" not in st.session_state:
     st.session_state.dopyty = load_data()
 
@@ -110,7 +122,12 @@ if st.session_state.menu_tab not in tabs_options:
 current_index = tabs_options.index(st.session_state.menu_tab)
 
 selected_tab = st.radio("Navigácia", tabs_options, index=current_index, horizontal=True, label_visibility="collapsed")
-st.session_state.menu_tab = selected_tab
+if selected_tab != st.session_state.menu_tab:
+    if selected_tab == "Nová" and st.session_state.menu_tab != "Nová":
+        st.session_state.edit_item = None
+        clear_form_state()
+        st.session_state.service_blocks = [{"sluzba": "SI - individuálna supervízia", "hodiny": 4.0}]
+    st.session_state.menu_tab = selected_tab
 
 st.divider()
 
@@ -150,6 +167,7 @@ if st.session_state.menu_tab == "Dopyty":
                 st.write("") 
                 st.write("")
                 if st.button("📅 Spracovať", key=f"btn_proc_{row['ID']}"):
+                    clear_form_state()
                     st.session_state.edit_item = row.to_dict()
                     srv_str = row['Sluzby']
                     parts = [p.strip() for p in str(srv_str).split("+")]
@@ -160,14 +178,6 @@ if st.session_state.menu_tab == "Dopyty":
                         "sluzba": p if p in all_available_services else all_available_services[0], 
                         "hodiny": h_per_part
                     } for p in parts]
-                    
-                    for i in range(len(parts)):
-                        if f"cena_{i}" in st.session_state:
-                            del st.session_state[f"cena_{i}"]
-                        if f"last_hod_{i}" in st.session_state:
-                            del st.session_state[f"last_hod_{i}"]
-                        if f"last_serv_{i}" in st.session_state:
-                            del st.session_state[f"last_serv_{i}"]
 
                     st.session_state.menu_tab = "Nová"
                     st.rerun()
@@ -210,14 +220,13 @@ elif st.session_state.menu_tab == "Nová":
     st.markdown("### 📍 Miesto a automatická lokalizácia")
     col_l1, col_l2 = st.columns(2)
     with col_l1:
-        krajina = st.radio("Krajina výjazdu", ["Slovensko (SR)", "Česká republika (ČR)"], horizontal=True, index=0 if default_krajina=="Slovensko (SR)" else 1)
+        krajina = st.radio("Krajina výjazdu", ["Slovensko (SR)", "Česká republika (ČR)"], horizontal=True, index=0 if default_krajina=="Slovensko (SR)" else 1, key="krajina_radio_key")
     with col_l2:
-        miesto = st.text_input("Miesto / Obec (z Dúbravky)", value=default_miesto)
+        miesto = st.text_input("Miesto / Obec (z Dúbravky)", value=default_miesto, key="miesto_input_key")
 
     lookup_key = miesto.strip().lower()
     auto_km_base = DISTANCE_DATABASE.get(lookup_key, int(item.get('Km', 60)) if item else 60)
 
-    # Reaktívna správa kilometrov pri zmene miesta
     km_key = "vzdialenost_km_val"
     if "last_miesto_val" not in st.session_state or st.session_state.get("last_miesto_val") != miesto:
         st.session_state["last_miesto_val"] = miesto
@@ -225,7 +234,7 @@ elif st.session_state.menu_tab == "Nová":
 
     st.markdown("---")
 
-    # SEKCIA 2: SLUŽBY A BLOKY (PLNE FUNKČNÝ REAKTÍVNY PREPOČET)
+    # SEKCIA 2: SLUŽBY A BLOKY (REAKTÍVNY PREPOČET)
     st.markdown("### 2. SLUŽBY A BLOKY (SI: 55 €/h, ostatné: 60 €/h)")
     
     total_sluzba_cena = 0.0
@@ -240,7 +249,6 @@ elif st.session_state.menu_tab == "Nová":
         with col_b2:
             sel_hod = st.number_input(f"Hodiny {idx+1}", min_value=0.5, max_value=50.0, value=float(block["hodiny"]), step=0.5, key=f"hod_{idx}")
         
-        # Automatický výpočet ceny vždy pri zmene hodín alebo služby
         rate = HOURLY_RATES.get(sel_serv, 60.0)
         expected_price = round(sel_hod * rate, 2)
         
@@ -286,18 +294,18 @@ elif st.session_state.menu_tab == "Nová":
     with col_k1:
         vzdialenost_km = st.number_input("Kilometre tam a späť (km)", min_value=0, max_value=2000, step=10, key=km_key)
     with col_k2:
-        spotreba = st.number_input("Spotreba (l/100 km)", min_value=1.0, max_value=20.0, value=8.5, step=0.1)
+        spotreba = st.number_input("Spotreba (l/100 km)", min_value=1.0, max_value=20.0, value=8.5, step=0.1, key="spotreba_key")
     with col_k3:
-        cena_paliva = st.number_input("Cena nafty (€/l)", min_value=0.5, max_value=3.0, value=1.55, step=0.01)
+        cena_paliva = st.number_input("Cena nafty (€/l)", min_value=0.5, max_value=3.0, value=1.55, step=0.01, key="cena_paliva_key")
     with col_k4:
-        amortizacia_rate = st.number_input("Zákonná amortizácia (€/km)", min_value=0.1, max_value=1.0, value=LEGAL_AMORTIZATION_PER_KM, step=0.001, format="%.3f")
+        amortizacia_rate = st.number_input("Zákonná amortizácia (€/km)", min_value=0.1, max_value=1.0, value=LEGAL_AMORTIZATION_PER_KM, step=0.001, format="%.3f", key="amort_key")
 
     vypocet_amortizacia = vzdialenost_km * amortizacia_rate
     vypocet_palivo = (spotreba / 100.0) * vzdialenost_km * cena_paliva
     auto_cestovne_total = round(vypocet_amortizacia + vypocet_palivo, 2)
 
     cestovne_key = "cena_cestovne_val"
-    if "last_auto_cestovne" not in st.session_state or st.session_state.get("last_auto_cestovne_calc") != auto_cestovne_total:
+    if "last_auto_cestovne_calc" not in st.session_state or st.session_state.get("last_auto_cestovne_calc") != auto_cestovne_total:
         st.session_state["last_auto_cestovne_calc"] = auto_cestovne_total
         st.session_state[cestovne_key] = auto_cestovne_total
 
@@ -312,7 +320,7 @@ elif st.session_state.menu_tab == "Nová":
 
     col_c1, col_c2 = st.columns(2)
     with col_c1:
-        cestovny_cas = st.number_input("Cestovný čas (hod. z Dúbravky)", min_value=0.0, max_value=10.0, value=default_cesta, step=0.5)
+        cestovny_cas = st.number_input("Cestovný čas (hod. z Dúbravky)", min_value=0.0, max_value=10.0, value=default_cesta, step=0.5, key="cestovny_cas_key")
     with col_c2:
         cena_cestovne = st.number_input("Výsledné cestovné (€) - automatický výpočet", min_value=0.0, max_value=2000.0, step=5.0, key=cestovne_key)
 
@@ -322,9 +330,9 @@ elif st.session_state.menu_tab == "Nová":
     st.markdown("### 🏨 Ubytovanie a strava")
     col_u1, col_u2 = st.columns(2)
     with col_u1:
-        ubytovanie = st.number_input("Ubytovanie (€)", min_value=0.0, max_value=1000.0, value=default_ubytovanie, step=10.0)
+        ubytovanie = st.number_input("Ubytovanie (€)", min_value=0.0, max_value=1000.0, value=default_ubytovanie, step=10.0, key="ubytovanie_key")
     with col_u2:
-        strava = st.number_input("Strava (€)", min_value=0.0, max_value=500.0, value=default_strava, step=5.0)
+        strava = st.number_input("Strava (€)", min_value=0.0, max_value=500.0, value=default_strava, step=5.0, key="strava_key")
 
     st.markdown("---")
 
@@ -332,11 +340,11 @@ elif st.session_state.menu_tab == "Nová":
     st.markdown("### 📅 Dátum a časové krokovanie")
     col_d1, col_d2, col_d3 = st.columns(3)
     with col_d1:
-        den = st.selectbox("Deň", list(range(1, 32)), index=default_datum.day - 1)
+        den = st.selectbox("Deň", list(range(1, 32)), index=default_datum.day - 1, key="den_key")
     with col_d2:
-        mesiac = st.selectbox("Mesiac", list(range(1, 13)), index=default_datum.month - 1)
+        mesiac = st.selectbox("Mesiac", list(range(1, 13)), index=default_datum.month - 1, key="mesiac_key")
     with col_d3:
-        rok = st.selectbox("Rok", [2026, 2027], index=0 if default_datum.year == 2026 else 1)
+        rok = st.selectbox("Rok", [2026, 2027], index=0 if default_datum.year == 2026 else 1, key="rok_key")
 
     try:
         datum_akcie = datetime(rok, mesiac, den).date()
@@ -374,7 +382,7 @@ elif st.session_state.menu_tab == "Nová":
     )
     st.markdown(sum_box_html, unsafe_allow_html=True)
 
-    poznamka = st.text_area("Poznámka", value=default_poznamka)
+    poznamka = st.text_area("Poznámka", value=default_poznamka, key="poznamka_key")
 
     combined_services_str = " + ".join([b["sluzba"] for b in st.session_state.service_blocks])
 
@@ -400,6 +408,7 @@ elif st.session_state.menu_tab == "Nová":
             
             save_data(st.session_state.dopyty)
             st.session_state.edit_item = None
+            clear_form_state()
             st.success(f"Dopyt #{item['ID']} ({miesto}) bol úspešne spracovaný a prenesený do kalendára!")
             st.session_state.menu_tab = "Pipeline"
             st.rerun()
@@ -426,6 +435,7 @@ elif st.session_state.menu_tab == "Nová":
             }
             st.session_state.dopyty = pd.concat([st.session_state.dopyty, pd.DataFrame([novy_riadok])], ignore_index=True)
             save_data(st.session_state.dopyty)
+            clear_form_state()
             st.success(f"Dopyt pre '{miesto}' bol uložený pod ID {novy_id}!")
             st.session_state.menu_tab = "Dopyty"
             st.rerun()
@@ -466,5 +476,6 @@ elif st.session_state.menu_tab == "Export":
         df_init = pd.DataFrame(INITIAL_DATA)
         save_data(df_init)
         st.session_state.dopyty = df_init
+        clear_form_state()
         st.success("Testovacie dáta boli obnovené!")
         st.rerun()
