@@ -8,16 +8,25 @@ st.set_page_config(page_title="Asistent Štefana Šarközyho", layout="wide", pa
 DATA_FILE = "dopyty.csv"
 
 INITIAL_DATA = [
-    {"ID": 1, "Datum_Vytvorenia": "2026-10-25 10:15", "Sluzby": "SI - individuálna supervízia", "Hodiny": 4.0, "Miesto": "Cífer", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-02", "Cas": "09:00", "Cestovny_Cas": 1.0, "Odchod": "08:00", "Cena_Sluzby": 240.0, "Cena_Cestovne": 0.0, "Stav": "Nová", "Poznamka": "p | Fakturácia: 240"},
-    {"ID": 2, "Datum_Vytvorenia": "2026-10-25 10:20", "Sluzby": "SI - individuálna supervízia", "Hodiny": 4.0, "Miesto": "CDR piešťany", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-04", "Cas": "10:00", "Cestovny_Cas": 1.5, "Odchod": "08:30", "Cena_Sluzby": 240.0, "Cena_Cestovne": 0.0, "Stav": "Nová", "Poznamka": "p | Fakturácia: 240"},
-    {"ID": 3, "Datum_Vytvorenia": "2026-10-25 10:25", "Sluzby": "SI - individuálna supervízia", "Hodiny": 4.0, "Miesto": "KC Príbeta", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-06", "Cas": "09:30", "Cestovny_Cas": 2.0, "Odchod": "07:30", "Cena_Sluzby": 240.0, "Cena_Cestovne": 0.0, "Stav": "Nová", "Poznamka": "o | dohoda | Fakturácia: 240"},
-    {"ID": 4, "Datum_Vytvorenia": "2026-10-25 10:30", "Sluzby": "SI - individuálna supervízia", "Hodiny": 3.0, "Miesto": "KC Šaľa", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-08", "Cas": "10:00", "Cestovny_Cas": 1.0, "Odchod": "09:00", "Cena_Sluzby": 180.0, "Cena_Cestovne": 0.0, "Stav": "Nová", "Poznamka": "p | Fakturácia: 180"},
-    {"ID": 5, "Datum_Vytvorenia": "2026-10-25 10:35", "Sluzby": "SI - individuálna supervízia", "Hodiny": 5.0, "Miesto": "dss javirinska", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-10", "Cas": "09:00", "Cestovny_Cas": 1.5, "Odchod": "07:30", "Cena_Sluzby": 300.0, "Cena_Cestovne": 0.0, "Stav": "Nová", "Poznamka": "p | Fakturácia: 300"},
-    {"ID": 6, "Datum_Vytvorenia": "2026-10-25 10:40", "Sluzby": "SI - individuálna supervízia", "Hodiny": 25.0, "Miesto": "pezinok Ospod", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-15", "Cas": "08:30", "Cestovny_Cas": 0.5, "Odchod": "08:00", "Cena_Sluzby": 1500.0, "Cena_Cestovne": 0.0, "Stav": "Nová", "Poznamka": "p | dohoda | Fakturácia: 1500"},
-    {"ID": 7, "Datum_Vytvorenia": "2026-10-25 10:45", "Sluzby": "SI - individuálna supervízia", "Hodiny": 6.0, "Miesto": "CDR pezinok", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-18", "Cas": "09:00", "Cestovny_Cas": 0.5, "Odchod": "08:30", "Cena_Sluzby": 360.0, "Cena_Cestovne": 0.0, "Stav": "Nová", "Poznamka": "p | Fakturácia: 360"},
-    {"ID": 8, "Datum_Vytvorenia": "2026-10-25 10:50", "Sluzby": "SI - individuálna supervízia", "Hodiny": 4.0, "Miesto": "Kc Jelka", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-05", "Cas": "09:00", "Cestovny_Cas": 1.0, "Odchod": "08:00", "Cena_Sluzby": 0.0, "Cena_Cestovne": 0.0, "Stav": "Nová", "Poznamka": "Testovací dopyt Jelka"},
-    {"ID": 9, "Datum_Vytvorenia": "2026-10-25 10:55", "Sluzby": "SI - individuálna supervízia", "Hodiny": 10.0, "Miesto": "Partizanske", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-22", "Cas": "09:00", "Cestovny_Cas": 2.0, "Odchod": "07:00", "Cena_Sluzby": 600.0, "Cena_Cestovne": 0.0, "Stav": "Nová", "Poznamka": "p | Fakturácia: 600"}
+    {"ID": 1, "Datum_Vytvorenia": "2026-10-25 10:15", "Sluzby": "SI - individuálna supervízia", "Hodiny": 4.0, "Miesto": "Cífer", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-02", "Cas": "09:00", "Cestovny_Cas": 1.0, "Odchod": "08:00", "Cena_Sluzby": 220.0, "Cena_Cestovne": 0.0, "Stav": "Nová", "Poznamka": "p | Fakturácia: 220"},
+    {"ID": 2, "Datum_Vytvorenia": "2026-10-25 10:20", "Sluzby": "SI - individuálna supervízia", "Hodiny": 4.0, "Miesto": "CDR piešťany", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-04", "Cas": "10:00", "Cestovny_Cas": 1.5, "Odchod": "08:30", "Cena_Sluzby": 220.0, "Cena_Cestovne": 0.0, "Stav": "Nová", "Poznamka": "p | Fakturácia: 220"},
+    {"ID": 3, "Datum_Vytvorenia": "2026-10-25 10:25", "Sluzby": "SI - individuálna supervízia", "Hodiny": 4.0, "Miesto": "KC Príbeta", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-06", "Cas": "09:30", "Cestovny_Cas": 2.0, "Odchod": "07:30", "Cena_Sluzby": 220.0, "Cena_Cestovne": 0.0, "Stav": "Nová", "Poznamka": "o | dohoda | Fakturácia: 220"},
+    {"ID": 4, "Datum_Vytvorenia": "2026-10-25 10:30", "Sluzby": "SI - individuálna supervízia", "Hodiny": 3.0, "Miesto": "KC Šaľa", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-08", "Cas": "10:00", "Cestovny_Cas": 1.0, "Odchod": "09:00", "Cena_Sluzby": 165.0, "Cena_Cestovne": 0.0, "Stav": "Nová", "Poznamka": "p | Fakturácia: 165"},
+    {"ID": 5, "Datum_Vytvorenia": "2026-10-25 10:35", "Sluzby": "SI - individuálna supervízia", "Hodiny": 5.0, "Miesto": "dss javirinska", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-10", "Cas": "09:00", "Cestovny_Cas": 1.5, "Odchod": "07:30", "Cena_Sluzby": 275.0, "Cena_Cestovne": 0.0, "Stav": "Nová", "Poznamka": "p | Fakturácia: 275"},
+    {"ID": 6, "Datum_Vytvorenia": "2026-10-25 10:40", "Sluzby": "SI - individuálna supervízia", "Hodiny": 25.0, "Miesto": "pezinok Ospod", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-15", "Cas": "08:30", "Cestovny_Cas": 0.5, "Odchod": "08:00", "Cena_Sluzby": 1375.0, "Cena_Cestovne": 0.0, "Stav": "Nová", "Poznamka": "p | dohoda | Fakturácia: 1375"},
+    {"ID": 7, "Datum_Vytvorenia": "2026-10-25 10:45", "Sluzby": "SI - individuálna supervízia", "Hodiny": 6.0, "Miesto": "CDR pezinok", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-18", "Cas": "09:00", "Cestovny_Cas": 0.5, "Odchod": "08:30", "Cena_Sluzby": 330.0, "Cena_Cestovne": 0.0, "Stav": "Nová", "Poznamka": "p | Fakturácia: 330"},
+    {"ID": 8, "Datum_Vytvorenia": "2026-10-25 10:50", "Sluzby": "SI - individuálna supervízia", "Hodiny": 4.0, "Miesto": "Kc Jelka", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-05", "Cas": "09:00", "Cestovny_Cas": 1.0, "Odchod": "08:00", "Cena_Sluzby": 220.0, "Cena_Cestovne": 0.0, "Stav": "Nová", "Poznamka": "Testovací dopyt Jelka"},
+    {"ID": 9, "Datum_Vytvorenia": "2026-10-25 10:55", "Sluzby": "SI - individuálna supervízia", "Hodiny": 10.0, "Miesto": "Partizanske", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-22", "Cas": "09:00", "Cestovny_Cas": 2.0, "Odchod": "07:00", "Cena_Sluzby": 550.0, "Cena_Cestovne": 0.0, "Stav": "Nová", "Poznamka": "p | Fakturácia: 550"}
 ]
+
+# Definícia hodinových sadzieb (€/hod)
+HOURLY_RATES = {
+    "SI - individuálna supervízia": 55.0,
+    "SS - skupinová supervízia": 60.0,
+    "KI - krízová intervencia": 60.0,
+    "K - koučing": 60.0,
+    "V - vzdelávanie": 60.0
+}
 
 def load_data():
     if os.path.exists(DATA_FILE):
@@ -54,14 +63,13 @@ if "edit_item" not in st.session_state:
     st.session_state.edit_item = None
 
 if "service_blocks" not in st.session_state:
-    st.session_state.service_blocks = [{"sluzba": "SI - individuálna supervízia", "hodiny": 4.0, "cena": 0.0}]
+    st.session_state.service_blocks = [{"sluzba": "SI - individuálna supervízia", "hodiny": 4.0, "cena": 4.0 * 55.0}]
 
 st.markdown("""
     <style>
     .card { background-color: #f8f9fa; padding: 16px; border-radius: 10px; margin-bottom: 12px; border: 1px solid #e0e0e0; border-left: 5px solid #ff4b4b; }
     .card-calendar { background-color: #f0f7f4; padding: 16px; border-radius: 10px; margin-bottom: 12px; border: 1px solid #d0e8df; border-left: 5px solid #28a745; }
     .card h4 { margin-top: 0; color: #262730; }
-    .box-section { background-color: #f1f3f5; padding: 15px; border-radius: 8px; border: 1px solid #ced4da; margin-bottom: 15px; }
     </style>
 """, unsafe_allow_html=True)
 
@@ -75,13 +83,7 @@ st.session_state.active_tab = selected_tab
 
 st.divider()
 
-all_available_services = [
-    "SI - individuálna supervízia",
-    "SS - skupinová supervízia",
-    "KI - krízová intervencia",
-    "K - koučing",
-    "V - vzdelávanie"
-]
+all_available_services = list(HOURLY_RATES.keys())
 
 if selected_tab == "Dopyty":
     st.header("📋 Zoznam zaznamenaných dopytov")
@@ -115,10 +117,18 @@ if selected_tab == "Dopyty":
                 st.write("")
                 if st.button("📅 Spracovať", key=f"btn_proc_{row['ID']}"):
                     st.session_state.edit_item = row.to_dict()
-                    # Nastavenie blokov služieb podľa editovaného položky
                     srv_str = row['Sluzby']
                     parts = [p.strip() for p in str(srv_str).split("+")]
-                    st.session_state.service_blocks = [{"sluzba": p if p in all_available_services else all_available_services[0], "hodiny": float(row['Hodiny']) / max(1, len(parts)), "cena": float(row['Cena_Sluzby']) / max(1, len(parts))} for p in parts]
+                    total_h = float(row['Hodiny'])
+                    h_per_part = total_h / max(1, len(parts))
+                    total_s_cena = float(row['Cena_Sluzby'])
+                    c_per_part = total_s_cena / max(1, len(parts))
+                    
+                    st.session_state.service_blocks = [{
+                        "sluzba": p if p in all_available_services else all_available_services[0], 
+                        "hodiny": h_per_part, 
+                        "cena": c_per_part
+                    } for p in parts]
                     st.session_state.active_tab = "Nová"
                     st.rerun()
 
@@ -156,7 +166,7 @@ elif selected_tab == "Nová":
     default_poznamka = item['Poznamka'] if item and 'Poznamka' in item else ""
 
     # SEKCIA 1: SLUŽBY A BLOKY
-    st.markdown("### 1. SLUŽBY A BLOKY")
+    st.markdown("### 1. SLUŽBY A BLOKY (SI: 55 €/h, SS/KI/K/V: 60 €/h)")
     
     total_sluzba_cena = 0.0
     total_hodiny = 0.0
@@ -169,28 +179,34 @@ elif selected_tab == "Nová":
             sel_serv = st.selectbox(f"Služba {idx+1}", all_available_services, index=all_available_services.index(block["sluzba"]) if block["sluzba"] in all_available_services else 0, key=f"serv_{idx}")
         with col_b2:
             sel_hod = st.number_input(f"Hodiny {idx+1}", min_value=0.5, max_value=50.0, value=float(block["hodiny"]), step=0.5, key=f"hod_{idx}")
+        
+        # Automatický prepočet ceny podľa sadzby, ak užívateľ nezmenil manuálne
+        expected_auto_price = sel_hod * HOURLY_RATES.get(sel_serv, 60.0)
+        # Ak sa zmenila služba alebo hodiny oproti uloženej hodnote, aktualizujeme cenu
+        default_price_val = float(block["cena"]) if block["sluzba"] == sel_serv else expected_auto_price
+
         with col_b3:
-            sel_cena = st.number_input(f"Cena (€) {idx+1}", min_value=0.0, max_value=10000.0, value=float(block["cena"]), step=10.0, key=f"cena_{idx}")
+            sel_cena = st.number_input(f"Cena (€) {idx+1}", min_value=0.0, max_value=10000.0, value=default_price_val, step=5.0, key=f"cena_{idx}")
         with col_b4:
             st.write("")
             st.write("")
             if len(st.session_state.service_blocks) > 1:
                 if st.button("🗑️", key=f"del_{idx}"):
-                    pass # will handle below
+                    pass
 
         total_sluzba_cena += sel_cena
         total_hodiny += sel_hod
         updated_blocks.append({"sluzba": sel_serv, "hodiny": sel_hod, "cena": sel_cena})
-        st.markdown(f"*Výpočet položky #{idx+1}: {sel_serv} ({sel_hod} hod.) = **{sel_cena} €***")
+        st.markdown(f"*Výpočet položky #{idx+1}: {sel_serv} ({sel_hod} hod. × {HOURLY_RATES.get(sel_serv, 60.0)} €) = **{sel_cena} €***")
         st.divider()
 
     st.session_state.service_blocks = updated_blocks
 
     if st.button("+ Pridať blok"):
-        st.session_state.service_blocks.append({"sluzba": all_available_services[0], "hodiny": 4.0, "cena": 0.0})
+        st.session_state.service_blocks.append({"sluzba": "SI - individuálna supervízia", "hodiny": 4.0, "cena": 4.0 * 55.0})
         st.rerun()
 
-    # SEKCIA 2: VOĽNÝ TERMÍN (11./12. mesiac) A LOGISTIKA
+    # SEKCIA 2: VOĽNÝ TERMÍN A LOGISTIKA
     st.markdown("### 2. VOĽNÝ TERMÍN (11./12. mesiac)")
     
     col_d1, col_d2, col_d3 = st.columns(3)
