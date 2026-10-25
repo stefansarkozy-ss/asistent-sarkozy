@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import os
-from datetime import datetime, time
+from datetime import datetime
 
 st.set_page_config(page_title="Asistent Štefana Šarközyho", layout="wide", page_icon="💼")
 
@@ -44,17 +44,17 @@ def load_data():
 def save_data(df):
     df.to_csv(DATA_FILE, index=False)
 
-def sync_to_google_calendar_automatically(row):
-    pass
-
 if "dopyty" not in st.session_state:
     st.session_state.dopyty = load_data()
 
 if "active_tab" not in st.session_state:
-    st.session_state.active_tab = "📋 Dopyty"
+    st.session_state.active_tab = "Dopyty"
 
 if "edit_item" not in st.session_state:
     st.session_state.edit_item = None
+
+if "service_blocks" not in st.session_state:
+    st.session_state.service_blocks = [{"sluzba": "SI - individuálna supervízia", "hodiny": 4.0, "cena": 0.0}]
 
 st.markdown("""
     <style>
@@ -67,7 +67,7 @@ st.markdown("""
 
 st.title("💼 Asistent Štefana Šarközyho")
 
-tabs_options = ["📋 Dopyty", "➕ Nová požiadavka", "📅 Kalendár", "📊 Pipeline", "👥 Klienti", "⚙️ Nastavenia"]
+tabs_options = ["Dopyty", "Nová", "Pipeline", "Klienti", "AI Engine", "Export"]
 current_index = tabs_options.index(st.session_state.active_tab) if st.session_state.active_tab in tabs_options else 0
 
 selected_tab = st.radio("Navigácia", tabs_options, index=current_index, horizontal=True, label_visibility="collapsed")
@@ -83,7 +83,7 @@ all_available_services = [
     "V - vzdelávanie"
 ]
 
-if selected_tab == "📋 Dopyty":
+if selected_tab == "Dopyty":
     st.header("📋 Zoznam zaznamenaných dopytov")
     df = st.session_state.dopyty
     active_df = df[df["Stav"] != "Kalendár"]
@@ -115,29 +115,23 @@ if selected_tab == "📋 Dopyty":
                 st.write("")
                 if st.button("📅 Spracovať", key=f"btn_proc_{row['ID']}"):
                     st.session_state.edit_item = row.to_dict()
-                    st.session_state.active_tab = "➕ Nová požiadavka"
+                    # Nastavenie blokov služieb podľa editovaného položky
+                    srv_str = row['Sluzby']
+                    parts = [p.strip() for p in str(srv_str).split("+")]
+                    st.session_state.service_blocks = [{"sluzba": p if p in all_available_services else all_available_services[0], "hodiny": float(row['Hodiny']) / max(1, len(parts)), "cena": float(row['Cena_Sluzby']) / max(1, len(parts))} for p in parts]
+                    st.session_state.active_tab = "Nová"
                     st.rerun()
 
-elif selected_tab == "➕ Nová požiadavka":
+elif selected_tab == "Nová":
     item = st.session_state.edit_item
     if item:
         st.header(f"⚙️ Dokončenie a úprava dopytu #{item['ID']} ({item['Miesto']})")
-        st.info("Kompletná logika formulára: kombinácie služieb, výpočet cien a cestovného bloku.")
     else:
         st.header("➕ Nová požiadavka")
 
-    # Parsing existing services for multiselect
-    raw_services = item['Sluzby'] if item and 'Sluzby' in item else ("SI - individuálna supervízia" if not (item and 'Sluzba' in item) else item['Sluzba'])
-    default_selected_services = [s.strip() for s in str(raw_services).split("+")]
-    default_selected_services = [s for s in default_selected_services if s in all_available_services]
-    if not default_selected_services:
-        default_selected_services = ["SI - individuálna supervízia"]
-
-    default_hodiny = float(item['Hodiny']) if item and 'Hodiny' in item else 4.0
     default_krajina = item['Krajina'] if item and 'Krajina' in item else "Slovensko (SR)"
     default_miesto = item['Miesto'] if item and 'Miesto' in item else ""
     default_cesta = float(item.get('Cestovny_Cas', 1.0)) if item else 1.0
-    default_cena_sluzby = float(item.get('Cena_Sluzby', item.get('Cena_Fakturacia', 0.0))) if item else 0.0
     default_cena_cestovne = float(item.get('Cena_Cestovne', 0.0)) if item else 0.0
     
     try:
@@ -145,7 +139,6 @@ elif selected_tab == "➕ Nová požiadavka":
     except Exception:
         default_datum = datetime.now().date()
 
-    # Time parsing for start action
     try:
         t_parts = str(item['Cas']).split(":")
         def_h_akcia = int(t_parts[0])
@@ -153,7 +146,6 @@ elif selected_tab == "➕ Nová požiadavka":
     except Exception:
         def_h_akcia, def_m_akcia = 9, 0
 
-    # Time parsing for departure
     try:
         od_parts = str(item.get('Odchod', '08:00')).split(":")
         def_h_odchod = int(od_parts[0])
@@ -163,52 +155,71 @@ elif selected_tab == "➕ Nová požiadavka":
 
     default_poznamka = item['Poznamka'] if item and 'Poznamka' in item else ""
 
-    # 1. SEKCIA SLUŽIEB A KOMBINÁCIÍ
-    st.markdown("### 🛠️ Služby a cenotvorba")
-    selected_services = st.multiselect("Vyberte službu / kombináciu služieb pre výjazd", all_available_services, default=default_selected_services)
+    # SEKCIA 1: SLUŽBY A BLOKY
+    st.markdown("### 1. SLUŽBY A BLOKY")
     
-    col_s1, col_s2 = st.columns(2)
-    with col_s1:
-        hodiny = st.number_input("Trvanie akcie celkom (hodiny)", min_value=0.5, max_value=50.0, value=default_hodiny, step=0.5)
-    with col_s2:
-        cena_sluzby = st.number_input("Suma za služby (€)", min_value=0.0, max_value=10000.0, value=default_cena_sluzby, step=10.0)
+    total_sluzba_cena = 0.0
+    total_hodiny = 0.0
+    updated_blocks = []
 
-    st.markdown("---")
+    for idx, block in enumerate(st.session_state.service_blocks):
+        st.markdown(f"**Služba / Blok #{idx + 1}**")
+        col_b1, col_b2, col_b3, col_b4 = st.columns([3, 1.5, 1.5, 0.8])
+        with col_b1:
+            sel_serv = st.selectbox(f"Služba {idx+1}", all_available_services, index=all_available_services.index(block["sluzba"]) if block["sluzba"] in all_available_services else 0, key=f"serv_{idx}")
+        with col_b2:
+            sel_hod = st.number_input(f"Hodiny {idx+1}", min_value=0.5, max_value=50.0, value=float(block["hodiny"]), step=0.5, key=f"hod_{idx}")
+        with col_b3:
+            sel_cena = st.number_input(f"Cena (€) {idx+1}", min_value=0.0, max_value=10000.0, value=float(block["cena"]), step=10.0, key=f"cena_{idx}")
+        with col_b4:
+            st.write("")
+            st.write("")
+            if len(st.session_state.service_blocks) > 1:
+                if st.button("🗑️", key=f"del_{idx}"):
+                    pass # will handle below
 
-    # 2. BLOK CESTOVNÉHO (HNEĎ POD SLUŽBAMI)
-    st.markdown("### 🚗 Kompletný blok cestovného a logistiky z Dúbravky")
-    col_c1, col_c2, col_c3 = st.columns(3)
+        total_sluzba_cena += sel_cena
+        total_hodiny += sel_hod
+        updated_blocks.append({"sluzba": sel_serv, "hodiny": sel_hod, "cena": sel_cena})
+        st.markdown(f"*Výpočet položky #{idx+1}: {sel_serv} ({sel_hod} hod.) = **{sel_cena} €***")
+        st.divider()
+
+    st.session_state.service_blocks = updated_blocks
+
+    if st.button("+ Pridať blok"):
+        st.session_state.service_blocks.append({"sluzba": all_available_services[0], "hodiny": 4.0, "cena": 0.0})
+        st.rerun()
+
+    # SEKCIA 2: VOĽNÝ TERMÍN (11./12. mesiac) A LOGISTIKA
+    st.markdown("### 2. VOĽNÝ TERMÍN (11./12. mesiac)")
+    
+    col_d1, col_d2, col_d3 = st.columns(3)
+    with col_d1:
+        den = st.selectbox("Deň", list(range(1, 32)), index=default_datum.day - 1)
+    with col_d2:
+        mesiac = st.selectbox("Mesiac", list(range(1, 13)), index=default_datum.month - 1)
+    with col_d3:
+        rok = st.selectbox("Rok", [2026, 2027], index=0 if default_datum.year == 2026 else 1)
+
+    try:
+        datum_akcie = datetime(rok, mesiac, den).date()
+    except Exception:
+        datum_akcie = default_datum
+
+    col_l1, col_l2 = st.columns(2)
+    with col_l1:
+        krajina = st.radio("Krajina výjazdu", ["Slovensko (SR)", "Česká republika (ČR)"], horizontal=True, index=0 if default_krajina=="Slovensko (SR)" else 1)
+    with col_l2:
+        miesto = st.text_input("Miesto (z Dúbravky)", value=default_miesto)
+
+    st.markdown("### 🚗 Cestovný blok a časy")
+    col_c1, col_c2 = st.columns(2)
     with col_c1:
         cestovny_cas = st.number_input("Cestovný čas (hod. z Dúbravky)", min_value=0.0, max_value=10.0, value=default_cesta, step=0.5)
     with col_c2:
         cena_cestovne = st.number_input("Cena za cestovné (€)", min_value=0.0, max_value=1000.0, value=default_cena_cestovne, step=5.0)
-    with col_c3:
-        st.markdown(f"**Cestovné spolu:** `{cena_cestovne} €`")
 
-    st.markdown("---")
-
-    # 3. CELKOVÝ SÚČET (SLUŽBY + CESTOVNÉ)
-    celkova_suma = cena_sluzby + cena_cestovne
-    st.markdown(f"""
-    <div style="background-color: #e8f4f8; padding: 12px; border-radius: 8px; border: 1px solid #b8e0f2; margin-bottom: 15px;">
-        <h4 style="margin: 0; color: #0277bd;">Súčet služieb ({cena_sluzby} €) + Cestovné ({cena_cestovne} €) = Celková suma: <b>{celkova_suma} €</b></h4>
-    </div>
-    """, unsafe_allow_html=True)
-
-    col1, col2 = st.columns(2)
-    with col1:
-        krajina = st.radio("Krajina výjazdu", ["Slovensko (SR)", "Česká republika (ČR)"], horizontal=True, index=0 if default_krajina=="Slovensko (SR)" else 1)
-    with col2:
-        miesto = st.text_input("Miesto / Obec (voľný text)", value=default_miesto)
-
-    st.markdown("---")
-
-    # 4. DÁTUM A ČASOVÉ POLOŽKY S KROKOVANÍM (+/-)
-    st.markdown("### 📅 Dátum a časové krokovanie")
-    col_d, col_t1, col_t2 = st.columns(3)
-    with col_d:
-        datum_akcie = st.date_input("Dátum konania", value=default_datum)
-    
+    col_t1, col_t2 = st.columns(2)
     with col_t1:
         st.markdown("**Začiatok akcie**")
         col_th1, col_tm1 = st.columns(2)
@@ -216,7 +227,6 @@ elif selected_tab == "➕ Nová požiadavka":
             h_akcia = st.number_input("Hodina", min_value=0, max_value=23, value=def_h_akcia, step=1, key="h_akcia")
         with col_tm1:
             m_akcia = st.number_input("Minúta", min_value=0, max_value=59, value=def_m_akcia, step=15, key="m_akcia")
-            
     with col_t2:
         st.markdown("**Odchod z Dúbravky**")
         col_th2, col_tm2 = st.columns(2)
@@ -229,9 +239,18 @@ elif selected_tab == "➕ Nová požiadavka":
     cas_odchodu_str = f"{h_odchod:02d}:{m_odchod:02d}"
 
     st.markdown("---")
+
+    # FINÁLNY SÚČET
+    celkova_suma = total_sluzba_cena + cena_cestovne
+    st.markdown(f"""
+    <div style="background-color: #e8f4f8; padding: 15px; border-radius: 8px; border: 1px solid #b8e0f2; margin-bottom: 15px;">
+        <h4 style="margin: 0; color: #0277bd;">Súčet služieb ({total_sluzba_cena} €) + Cestovné ({cena_cestovne} €) = Celková suma: <b>{celkova_suma} €</b></h4>
+    </div>
+    """, unsafe_allow_html=True)
+
     poznamka = st.text_area("Poznámka", value=default_poznamka)
 
-    combined_services_str = " + ".join(selected_services) if selected_services else "SI - individuálna supervízia"
+    combined_services_str = " + ".join([b["sluzba"] for b in st.session_state.service_blocks])
 
     btn_label = "💾 Dokončiť a automaticky vytvoriť termín v Google Kalendári" if item else "💾 Uložiť dopyt do zoznamu"
     if st.button(btn_label, type="primary"):
@@ -239,37 +258,35 @@ elif selected_tab == "➕ Nová požiadavka":
             idx = st.session_state.dopyty[st.session_state.dopyty["ID"] == item['ID']].index
             st.session_state.dopyty.loc[idx, "Stav"] = "Kalendár"
             st.session_state.dopyty.loc[idx, "Sluzby"] = combined_services_str
-            st.session_state.dopyty.loc[idx, "Hodiny"] = hodiny
+            st.session_state.dopyty.loc[idx, "Hodiny"] = total_hodiny
             st.session_state.dopyty.loc[idx, "Miesto"] = miesto
             st.session_state.dopyty.loc[idx, "Krajina"] = krajina
             st.session_state.dopyty.loc[idx, "Datum_Akcie"] = str(datum_akcie)
             st.session_state.dopyty.loc[idx, "Cas"] = cas_akcie_str
             st.session_state.dopyty.loc[idx, "Cestovny_Cas"] = cestovny_cas
             st.session_state.dopyty.loc[idx, "Odchod"] = cas_odchodu_str
-            st.session_state.dopyty.loc[idx, "Cena_Sluzby"] = cena_sluzby
+            st.session_state.dopyty.loc[idx, "Cena_Sluzby"] = total_sluzba_cena
             st.session_state.dopyty.loc[idx, "Cena_Cestovne"] = cena_cestovne
             st.session_state.dopyty.loc[idx, "Poznamka"] = poznamka
             
             save_data(st.session_state.dopyty)
-            sync_to_google_calendar_automatically(st.session_state.dopyty.loc[idx])
-            
             st.session_state.edit_item = None
             st.success(f"Dopyt #{item['ID']} ({miesto}) bol úspešne spracovaný a prenesený do kalendára!")
-            st.session_state.active_tab = "📅 Kalendár"
+            st.session_state.active_tab = "Pipeline"
         else:
             novy_id = int(st.session_state.dopyty["ID"].max() + 1) if not st.session_state.dopyty.empty else 1
             novy_riadok = {
                 "ID": novy_id,
                 "Datum_Vytvorenia": datetime.now().strftime("%Y-%m-%d %H:%M"),
                 "Sluzby": combined_services_str,
-                "Hodiny": hodiny,
+                "Hodiny": total_hodiny,
                 "Miesto": miesto,
                 "Krajina": krajina,
                 "Datum_Akcie": str(datum_akcie),
                 "Cas": cas_akcie_str,
                 "Cestovny_Cas": cestovny_cas,
                 "Odchod": cas_odchodu_str,
-                "Cena_Sluzby": cena_sluzby,
+                "Cena_Sluzby": total_sluzba_cena,
                 "Cena_Cestovne": cena_cestovne,
                 "Stav": "Nová",
                 "Poznamka": poznamka
@@ -277,12 +294,12 @@ elif selected_tab == "➕ Nová požiadavka":
             st.session_state.dopyty = pd.concat([st.session_state.dopyty, pd.DataFrame([novy_riadok])], ignore_index=True)
             save_data(st.session_state.dopyty)
             st.success(f"Dopyt pre '{miesto}' bol uložený pod ID {novy_id}!")
-            st.session_state.active_tab = "📋 Dopyty"
+            st.session_state.active_tab = "Dopyty"
         
         st.rerun()
 
-elif selected_tab == "📅 Kalendár":
-    st.header("📅 Kalendár potvrdených termínov")
+elif selected_tab == "Pipeline":
+    st.header("📅 Kalendár a Prehľad potvrdených termínov")
     df = st.session_state.dopyty
     cal_df = df[df["Stav"] == "Kalendár"].sort_values(by="Datum_Akcie")
     
@@ -300,19 +317,16 @@ elif selected_tab == "📅 Kalendár":
             </div>
             """, unsafe_allow_html=True)
 
-elif selected_tab == "📊 Pipeline":
-    st.header("📊 Prehľad stavov (Pipeline)")
-    if not st.session_state.dopyty.empty:
-        st.bar_chart(st.session_state.dopyty["Stav"].value_counts())
-    else:
-        st.info("Žiadne dáta v pipeline.")
-
-elif selected_tab == "👥 Klienti":
+elif selected_tab == "Klienti":
     st.header("👥 Klienti a partneri")
     st.info("Modul pre správu kontaktov a inštitúcií.")
 
-elif selected_tab == "⚙️ Nastavenia":
-    st.header("⚙️ Nastavenia aplikácie")
+elif selected_tab == "AI Engine":
+    st.header("🤖 AI Engine")
+    st.info("Modul pre pokročilú analýzu dopytov.")
+
+elif selected_tab == "Export":
+    st.header("📤 Export dát")
     st.write(f"Dátový súbor: `{DATA_FILE}`")
     if st.button("🔄 Obnoviť pôvodné testovacie dáta"):
         df_init = pd.DataFrame(INITIAL_DATA)
