@@ -27,7 +27,6 @@ HOURLY_RATES = {
     "V - vzdelávanie": 60.0
 }
 
-# Prednastavená databáza vzdialeností (km tam a späť z Bratislavy - Dúbravky)
 DISTANCE_DATABASE = {
     "jelka": 90,
     "kc jelka": 90,
@@ -177,10 +176,6 @@ elif st.session_state.menu_tab == "Nová":
     default_ubytovanie = float(item.get('Ubytovanie', 0.0)) if item else 0.0
     default_strava = float(item.get('Strava', 0.0)) if item else 0.0
     
-    # Automatické vyhľadanie km podľa miesta v databáze
-    clean_miesto = default_miesto.strip().lower()
-    default_km = int(item.get('Km', DISTANCE_DATABASE.get(clean_miesto, 60))) if item else DISTANCE_DATABASE.get(clean_miesto, 60)
-    
     try:
         default_datum = datetime.strptime(str(item['Datum_Akcie']), "%Y-%m-%d").date() if item and pd.notna(item.get('Datum_Akcie')) else datetime.now().date()
     except Exception:
@@ -210,9 +205,9 @@ elif st.session_state.menu_tab == "Nová":
     with col_l2:
         miesto = st.text_input("Miesto / Obec (z Dúbravky)", value=default_miesto)
 
-    # Automatické priradenie km na základe zadaného miesta
+    # Reaktívne vyhľadanie km podľa miesta
     lookup_key = miesto.strip().lower()
-    auto_km_val = DISTANCE_DATABASE.get(lookup_key, default_km)
+    auto_km_val = DISTANCE_DATABASE.get(lookup_key, int(item.get('Km', 60)) if item else 60)
 
     st.markdown("---")
 
@@ -231,7 +226,7 @@ elif st.session_state.menu_tab == "Nová":
         with col_b2:
             sel_hod = st.number_input(f"Hodiny {idx+1}", min_value=0.5, max_value=50.0, value=float(block["hodiny"]), step=0.5, key=f"hod_{idx}")
         
-        # Živý prepočet ceny priamo na základe hodín a hodinovej sadzby
+        # Automatický reaktívny výpočet ceny pri zmene hodín alebo služby
         rate = HOURLY_RATES.get(sel_serv, 60.0)
         auto_calculated_price = round(sel_hod * rate, 2)
 
@@ -299,7 +294,7 @@ elif st.session_state.menu_tab == "Nová":
     st.markdown("### 🏨 Ubytovanie a strava")
     col_u1, col_u2 = st.columns(2)
     with col_u1:
-        ubytovanie = st.number_input("Ubytowanie (€)", min_value=0.0, max_value=1000.0, value=default_ubytovanie, step=10.0)
+        ubytovanie = st.number_input("Ubytovanie (€)", min_value=0.0, max_value=1000.0, value=default_ubytovanie, step=10.0)
     with col_u2:
         strava = st.number_input("Strava (€)", min_value=0.0, max_value=500.0, value=default_strava, step=5.0)
 
