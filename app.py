@@ -37,6 +37,12 @@ def save_data(df):
 if "dopyty" not in st.session_state:
     st.session_state.dopyty = load_data()
 
+if "nav_tab" not in st.session_state:
+    st.session_state.nav_tab = "📋 Dopyty"
+
+if "edit_item" not in st.session_state:
+    st.session_state.edit_item = None
+
 st.markdown("""
     <style>
     .card { background-color: #f8f9fa; padding: 16px; border-radius: 10px; margin-bottom: 12px; border: 1px solid #e0e0e0; border-left: 5px solid #ff4b4b; }
@@ -46,9 +52,13 @@ st.markdown("""
 
 st.title("💼 Asistent Štefana Šarközyho")
 
-tabs = st.tabs(["📋 Dopyty", "➕ Nová požiadavka", "📊 Pipeline", "👥 Klienti", "⚙️ Nastavenia"])
+# Programmatická navigácia ako záložky
+tabs_options = ["📋 Dopyty", "➕ Nová požiadavka", "📊 Pipeline", "👥 Klienti", "⚙️ Nastavenia"]
+selected_tab = st.radio("Navigácia", tabs_options, horizontal=True, key="nav_tab", label_visibility="collapsed")
 
-with tabs[0]:
+st.divider()
+
+if selected_tab == "📋 Dopyty":
     st.header("📋 Zoznam zaznamenaných dopytov")
     df = st.session_state.dopyty
     
@@ -63,7 +73,6 @@ with tabs[0]:
         st.info("Zatiaľ neboli zaznamenané žiadne dopyty.")
     else:
         for idx, row in df.iterrows():
-            # Použijeme stĺpce pre rozloženie karty a tlačidla
             c_info, c_btn = st.columns([4, 1])
             
             with c_info:
@@ -76,77 +85,96 @@ with tabs[0]:
                 """, unsafe_allow_html=True)
             
             with c_btn:
-                st.write("") # malé zarovnanie
+                st.write("") 
                 st.write("")
-                # Jedno kliknutie na spracovanie / presun do kalendára
                 if st.button("📅 Spracovať", key=f"btn_proc_{row['ID']}"):
-                    st.session_state.dopyty.loc[st.session_state.dopyty["ID"] == row['ID'], "Stav"] = "Kalendár"
-                    save_data(st.session_state.dopyty)
-                    st.success(f"Dopyt #{row['ID']} presunutý do kalendára!")
+                    st.session_state.edit_item = row.to_dict()
+                    st.session_state.nav_tab = "➕ Nová požiadavka"
                     st.rerun()
 
-        st.subheader("⚙️ Hromadná alebo podrobná zmena stavu")
-        selected_id = st.selectbox("Vyberte dopyt na úpravu (ID):", df["ID"].tolist())
-        if selected_id:
-            row = df[df["ID"] == selected_id].iloc[0]
-            novy_stav = st.selectbox("Zmeniť stav dopytu:", ["Nová", "V riešení", "Potvrdená", "Kalendár", "Vybavené", "Zrušená"], index=["Nová", "V riešení", "Potvrdená", "Kalendár", "Vybavené", "Zrušená"].index(row['Stav']) if row['Stav'] in ["Nová", "V riešení", "Potvrdená", "Kalendár", "Vybavené", "Zrušená"] else 0)
-            if st.button("💾 Uložiť nový stav"):
-                st.session_state.dopyty.loc[st.session_state.dopyty["ID"] == selected_id, "Stav"] = novy_stav
-                save_data(st.session_state.dopyty)
-                st.success("Stav dopytu bol aktualizovaný!")
-                st.rerun()
+elif selected_tab == "➕ Nová požiadavka":
+    item = st.session_state.edit_item
+    if item:
+        st.header(f"⚙️ Dokončenie a úprava dopytu #{item['ID']} ({item['Miesto']})")
+        st.info("Údaje boli predvyplnené z vybraného dopytu. Skontrolujte ich a uložte pre posun do kalendára/pipeline.")
+    else:
+        st.header("➕ Nová požiadavka")
 
-with tabs[1]:
-    st.header("1. Služby a bloky")
-    sluzba = st.selectbox("Služba", ["supv", "SI - Supervízia", "SK - Kolektívna supervízia", "Krízová intervencia", "Koučing"])
-    hodiny = st.number_input("Hodiny", min_value=1.0, max_value=50.0, value=4.0, step=0.5)
+    default_sluzba = item['Sluzba'] if item and 'Sluzba' in item else "supv"
+    default_hodiny = float(item['Hodiny']) if item and 'Hodiny' in item else 4.0
+    default_krajina = item['Krajina'] if item and 'Krajina' in item else "Slovensko (SR)"
+    default_miesto = item['Miesto'] if item and 'Miesto' in item else ""
+    
+    try:
+        default_datum = datetime.strptime(str(item['Datum_Akcie']), "%Y-%m-%d").date() if item and pd.notna(item.get('Datum_Akcie')) else datetime.now().date()
+    except:
+        default_datum = datetime.now().date()
 
-    st.header("2. Voľný termín a logistika (z Dúbravky)")
+    try:
+        default_cas = datetime.strptime(str(item['Cas']), "%H:%M").time() if item and pd.notna(item.get('Cas')) else datetime.now().time()
+    except:
+        default_cas = datetime.now().time()
+
+    default_poznamka = item['Poznamka'] if item and 'Poznamka' in item else ""
+
+    sluzba = st.selectbox("Služba", ["supv", "SI - Supervízia", "SK - Kolektívna supervízia", "Krízová intervencia", "Koučing"], index=0 if default_sluzba=="supv" else 1)
+    hodiny = st.number_input("Hodiny", min_value=1.0, max_value=50.0, value=default_hodiny, step=0.5)
+
     col1, col2 = st.columns(2)
     with col1:
-        krajina = st.radio("Krajina výjazdu", ["Slovensko (SR)", "Česká republika (ČR)"], horizontal=True)
+        krajina = st.radio("Krajina výjazdu", ["Slovensko (SR)", "Česká republika (ČR)"], horizontal=True, index=0 if default_krajina=="Slovensko (SR)" else 1)
     with col2:
-        miesto = st.text_input("Miesto / Obec (voľný text)", value="")
+        miesto = st.text_input("Miesto / Obec (voľný text)", value=default_miesto)
 
     col_d, col_t = st.columns(2)
     with col_d:
-        datum_akcie = st.date_input("Dátum konania", datetime.now())
+        datum_akcie = st.date_input("Dátum konania", value=default_datum)
     with col_t:
-        cas_akcie = st.time_input("Čas začiatku", datetime.now().time())
+        cas_akcie = st.time_input("Čas začiatku", value=default_cas)
 
-    poznamka = st.text_area("Poznámka / Fakturácia", "")
+    poznamka = st.text_area("Poznámka / Fakturácia", value=default_poznamka)
 
-    if st.button("💾 Uložiť dopyt do zoznamu", type="primary"):
-        novy_id = int(st.session_state.dopyty["ID"].max() + 1) if not st.session_state.dopyty.empty else 1
-        novy_riadok = {
-            "ID": novy_id,
-            "Datum_Vytvorenia": datetime.now().strftime("%Y-%m-%d %H:%M"),
-            "Sluzba": sluzba,
-            "Hodiny": hodiny,
-            "Miesto": miesto,
-            "Krajina": krajina,
-            "Datum_Akcie": str(datum_akcie),
-            "Cas": str(cas_akcie),
-            "Stav": "Nová",
-            "Poznamka": poznamka
-        }
-        st.session_state.dopyty = pd.concat([st.session_state.dopyty, pd.DataFrame([novy_riadok])], ignore_index=True)
-        save_data(st.session_state.dopyty)
-        st.success(f"Dopyt pre '{miesto}' bol uložený pod ID {novy_id}!")
+    btn_label = "💾 Dokončiť, vymazať z dopytov a posunúť do kalendára" if item else "💾 Uložiť dopyt do zoznamu"
+    if st.button(btn_label, type="primary"):
+        if item:
+            # Odstránenie zo zoznamu dopytov
+            st.session_state.dopyty = st.session_state.dopyty[st.session_state.dopyty["ID"] != item['ID']]
+            save_data(st.session_state.dopyty)
+            st.session_state.edit_item = None
+            st.success(f"Dopyt #{item['ID']} ({miesto}) bol úspešne spracovaný!")
+        else:
+            novy_id = int(st.session_state.dopyty["ID"].max() + 1) if not st.session_state.dopyty.empty else 1
+            novy_riadok = {
+                "ID": novy_id,
+                "Datum_Vytvorenia": datetime.now().strftime("%Y-%m-%d %H:%M"),
+                "Sluzba": sluzba,
+                "Hodiny": hodiny,
+                "Miesto": miesto,
+                "Krajina": krajina,
+                "Datum_Akcie": str(datum_akcie),
+                "Cas": str(cas_akcie),
+                "Stav": "Nová",
+                "Poznamka": poznamka
+            }
+            st.session_state.dopyty = pd.concat([st.session_state.dopyty, pd.DataFrame([novy_riadok])], ignore_index=True)
+            save_data(st.session_state.dopyty)
+            st.success(f"Dopyt pre '{miesto}' bol uložený pod ID {novy_id}!")
+        
+        st.session_state.nav_tab = "📋 Dopyty"
         st.rerun()
 
-with tabs[2]:
+elif selected_tab == "📊 Pipeline":
     st.header("📊 Prehľad stavov (Pipeline)")
     if not st.session_state.dopyty.empty:
         st.bar_chart(st.session_state.dopyty["Stav"].value_counts())
     else:
         st.info("Žiadne dáta v pipeline.")
 
-with tabs[3]:
+elif selected_tab == "👥 Klienti":
     st.header("👥 Klienti a partneri")
     st.info("Modul pre správu kontaktov a inštitúcií.")
 
-with tabs[4]:
+elif selected_tab == "⚙️ Nastavenia":
     st.header("⚙️ Nastavenia aplikácie")
     st.write(f"Dátový súbor: `{DATA_FILE}`")
     if st.button("🔄 Obnoviť pôvodné testovacie dáta"):
