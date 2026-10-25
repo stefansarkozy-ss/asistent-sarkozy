@@ -160,6 +160,15 @@ if st.session_state.menu_tab == "Dopyty":
                         "sluzba": p if p in all_available_services else all_available_services[0], 
                         "hodiny": h_per_part
                     } for p in parts]
+                    
+                    for i in range(len(parts)):
+                        if f"cena_{i}" in st.session_state:
+                            del st.session_state[f"cena_{i}"]
+                        if f"last_hod_{i}" in st.session_state:
+                            del st.session_state[f"last_hod_{i}"]
+                        if f"last_serv_{i}" in st.session_state:
+                            del st.session_state[f"last_serv_{i}"]
+
                     st.session_state.menu_tab = "Nová"
                     st.rerun()
 
@@ -205,13 +214,18 @@ elif st.session_state.menu_tab == "Nová":
     with col_l2:
         miesto = st.text_input("Miesto / Obec (z Dúbravky)", value=default_miesto)
 
-    # Reaktívne vyhľadanie km podľa miesta
     lookup_key = miesto.strip().lower()
-    auto_km_val = DISTANCE_DATABASE.get(lookup_key, int(item.get('Km', 60)) if item else 60)
+    auto_km_base = DISTANCE_DATABASE.get(lookup_key, int(item.get('Km', 60)) if item else 60)
+
+    # Reaktívna správa kilometrov pri zmene miesta
+    km_key = "vzdialenost_km_val"
+    if "last_miesto_val" not in st.session_state or st.session_state.get("last_miesto_val") != miesto:
+        st.session_state["last_miesto_val"] = miesto
+        st.session_state[km_key] = auto_km_base
 
     st.markdown("---")
 
-    # SEKCIA 2: SLUŽBY A BLOKY (ŽIVÝ AUTOMATICKÝ PREPOČET)
+    # SEKCIA 2: SLUŽBY A BLOKY (PLNE FUNKČNÝ REAKTÍVNY PREPOČET)
     st.markdown("### 2. SLUŽBY A BLOKY (SI: 55 €/h, ostatné: 60 €/h)")
     
     total_sluzba_cena = 0.0
@@ -226,12 +240,21 @@ elif st.session_state.menu_tab == "Nová":
         with col_b2:
             sel_hod = st.number_input(f"Hodiny {idx+1}", min_value=0.5, max_value=50.0, value=float(block["hodiny"]), step=0.5, key=f"hod_{idx}")
         
-        # Automatický reaktívny výpočet ceny pri zmene hodín alebo služby
+        # Automatický výpočet ceny vždy pri zmene hodín alebo služby
         rate = HOURLY_RATES.get(sel_serv, 60.0)
-        auto_calculated_price = round(sel_hod * rate, 2)
+        expected_price = round(sel_hod * rate, 2)
+        
+        state_key = f"cena_{idx}"
+        prev_hod_key = f"prev_hod_{idx}"
+        prev_serv_key = f"prev_serv_{idx}"
+
+        if prev_hod_key not in st.session_state or st.session_state[prev_hod_key] != sel_hod or st.session_state.get(prev_serv_key) != sel_serv:
+            st.session_state[prev_hod_key] = sel_hod
+            st.session_state[prev_serv_key] = sel_serv
+            st.session_state[state_key] = expected_price
 
         with col_b3:
-            sel_cena = st.number_input(f"Cena (€) {idx+1}", min_value=0.0, max_value=10000.0, value=auto_calculated_price, step=5.0, key=f"cena_{idx}")
+            sel_cena = st.number_input(f"Cena (€) {idx+1}", min_value=0.0, max_value=10000.0, step=5.0, key=state_key)
         with col_b4:
             st.write("")
             st.write("")
@@ -256,12 +279,12 @@ elif st.session_state.menu_tab == "Nová":
 
     st.markdown("---")
 
-    # SEKCIA 3: CESTOVNÝ KALKULÁTOR (KM + AMORTIZÁCIA + PALIVO + ČAS)
+    # SEKCIA 3: CESTOVNÝ KALKULÁTOR
     st.markdown("### 🚗 TABUĽKOVÝ KALKULÁTOR CESTOVNÉHO (Mitsubishi Outlander: 8,5 l nafta/100 km)")
     
     col_k1, col_k2, col_k3, col_k4 = st.columns(4)
     with col_k1:
-        vzdialenost_km = st.number_input("Kilometre tam a späť (km)", min_value=0, max_value=2000, value=auto_km_val, step=10)
+        vzdialenost_km = st.number_input("Kilometre tam a späť (km)", min_value=0, max_value=2000, step=10, key=km_key)
     with col_k2:
         spotreba = st.number_input("Spotreba (l/100 km)", min_value=1.0, max_value=20.0, value=8.5, step=0.1)
     with col_k3:
@@ -272,6 +295,11 @@ elif st.session_state.menu_tab == "Nová":
     vypocet_amortizacia = vzdialenost_km * amortizacia_rate
     vypocet_palivo = (spotreba / 100.0) * vzdialenost_km * cena_paliva
     auto_cestovne_total = round(vypocet_amortizacia + vypocet_palivo, 2)
+
+    cestovne_key = "cena_cestovne_val"
+    if "last_auto_cestovne" not in st.session_state or st.session_state.get("last_auto_cestovne_calc") != auto_cestovne_total:
+        st.session_state["last_auto_cestovne_calc"] = auto_cestovne_total
+        st.session_state[cestovne_key] = auto_cestovne_total
 
     calc_box_html = (
         f"<div class='calc-box'>"
@@ -286,7 +314,7 @@ elif st.session_state.menu_tab == "Nová":
     with col_c1:
         cestovny_cas = st.number_input("Cestovný čas (hod. z Dúbravky)", min_value=0.0, max_value=10.0, value=default_cesta, step=0.5)
     with col_c2:
-        cena_cestovne = st.number_input("Výsledné cestovné (€) - automatický výpočet", min_value=0.0, max_value=2000.0, value=auto_cestovne_total, step=5.0)
+        cena_cestovne = st.number_input("Výsledné cestovné (€) - automatický výpočet", min_value=0.0, max_value=2000.0, step=5.0, key=cestovne_key)
 
     st.markdown("---")
 
