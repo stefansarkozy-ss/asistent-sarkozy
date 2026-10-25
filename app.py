@@ -7,7 +7,6 @@ st.set_page_config(page_title="Asistent Štefana Šarközyho", layout="wide", pa
 
 DATA_FILE = "dopyty.csv"
 
-# Presné dáta podľa poskytnutého zoznamu
 INITIAL_DATA = [
     {"ID": 1, "Datum_Vytvorenia": "2026-10-25 09:00", "Sluzba": "supv", "Hodiny": 4.0, "Miesto": "Cífer", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-02", "Cas": "09:00", "Stav": "Nová", "Poznamka": "p | Fakturácia: 240"},
     {"ID": 2, "Datum_Vytvorenia": "2026-10-25 09:15", "Sluzba": "supv", "Hodiny": 4.0, "Miesto": "CDR piešťany", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-04", "Cas": "10:00", "Stav": "Nová", "Poznamka": "p | Fakturácia: 240"},
@@ -40,7 +39,7 @@ if "dopyty" not in st.session_state:
 
 st.markdown("""
     <style>
-    .card { background-color: #f8f9fa; padding: 18px; border-radius: 10px; margin-bottom: 12px; border: 1px solid #e0e0e0; border-left: 5px solid #ff4b4b; }
+    .card { background-color: #f8f9fa; padding: 16px; border-radius: 10px; margin-bottom: 12px; border: 1px solid #e0e0e0; border-left: 5px solid #ff4b4b; }
     .card h4 { margin-top: 0; color: #262730; }
     </style>
 """, unsafe_allow_html=True)
@@ -64,15 +63,29 @@ with tabs[0]:
         st.info("Zatiaľ neboli zaznamenané žiadne dopyty.")
     else:
         for idx, row in df.iterrows():
-            st.markdown(f"""
-            <div class="card">
-                <h4>#{row['ID']} - {row['Sluzba']} ({row['Miesto']}, {row['Krajina']})</h4>
-                <p><b>Termín:</b> {row['Datum_Akcie']} o {row['Cas']} | <b>Rozsah:</b> {row['Hodiny']} hod. | <b>Stav:</b> <b>{row['Stav']}</b></p>
-                <p><i>{row['Poznamka']}</i></p>
-            </div>
-            """, unsafe_allow_html=True)
+            # Použijeme stĺpce pre rozloženie karty a tlačidla
+            c_info, c_btn = st.columns([4, 1])
+            
+            with c_info:
+                st.markdown(f"""
+                <div class="card">
+                    <h4>#{row['ID']} - {row['Sluzba']} ({row['Miesto']}, {row['Krajina']})</h4>
+                    <p><b>Termín:</b> {row['Datum_Akcie']} o {row['Cas']} | <b>Rozsah:</b> {row['Hodiny']} hod. | <b>Stav:</b> <b>{row['Stav']}</b></p>
+                    <p><i>{row['Poznamka']}</i></p>
+                </div>
+                """, unsafe_allow_html=True)
+            
+            with c_btn:
+                st.write("") # malé zarovnanie
+                st.write("")
+                # Jedno kliknutie na spracovanie / presun do kalendára
+                if st.button("📅 Spracovať", key=f"btn_proc_{row['ID']}"):
+                    st.session_state.dopyty.loc[st.session_state.dopyty["ID"] == row['ID'], "Stav"] = "Kalendár"
+                    save_data(st.session_state.dopyty)
+                    st.success(f"Dopyt #{row['ID']} presunutý do kalendára!")
+                    st.rerun()
 
-        st.subheader("⚙️ Spracovanie a zmena stavu")
+        st.subheader("⚙️ Hromadná alebo podrobná zmena stavu")
         selected_id = st.selectbox("Vyberte dopyt na úpravu (ID):", df["ID"].tolist())
         if selected_id:
             row = df[df["ID"] == selected_id].iloc[0]
