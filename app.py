@@ -59,9 +59,6 @@ def save_data(df):
 if "dopyty" not in st.session_state:
     st.session_state.dopyty = load_data()
 
-if "active_tab" not in st.session_state:
-    st.session_state.active_tab = "Dopyty"
-
 if "edit_item" not in st.session_state:
     st.session_state.edit_item = None
 
@@ -80,10 +77,9 @@ st.markdown("""
 st.title("💼 Asistent Štefana Šarközyho")
 
 tabs_options = ["Dopyty", "Nová", "Pipeline", "Klienti", "AI Engine", "Export"]
-current_index = tabs_options.index(st.session_state.active_tab) if st.session_state.active_tab in tabs_options else 0
 
-selected_tab = st.radio("Navigácia", tabs_options, index=current_index, horizontal=True, label_visibility="collapsed")
-st.session_state.active_tab = selected_tab
+# Opravené prepínanie záložiek so stabilným kľúčom
+selected_tab = st.radio("Navigácia", tabs_options, horizontal=True, label_visibility="collapsed", key="active_tab")
 
 st.divider()
 
@@ -170,7 +166,7 @@ elif selected_tab == "Nová":
     default_poznamka = item['Poznamka'] if item and 'Poznamka' in item else ""
 
     # SEKCIA 1: SLUŽBY A BLOKY (AUTOMATICKÝ PREPOČET HODÍN × SADZBA)
-    st.markdown("### 1. SLUŽBY A BLOKY (AUTOMATICKÝ PREPOČET HODÍN × SADZBA)")
+    st.markdown("### 1. SLUŽBY A BLOKY (SI: 55 €/h, ostatné: 60 €/h)")
     
     total_sluzba_cena = 0.0
     total_hodiny = 0.0
@@ -194,7 +190,8 @@ elif selected_tab == "Nová":
             st.write("")
             if len(st.session_state.service_blocks) > 1:
                 if st.button("🗑️", key=f"del_{idx}"):
-                    pass
+                    st.session_state.service_blocks.pop(idx)
+                    st.rerun()
 
         total_sluzba_cena += sel_cena
         total_hodiny += sel_hod
@@ -325,6 +322,7 @@ elif selected_tab == "Nová":
             st.session_state.edit_item = None
             st.success(f"Dopyt #{item['ID']} ({miesto}) bol úspešne spracovaný a prenesený do kalendára!")
             st.session_state.active_tab = "Pipeline"
+            st.rerun()
         else:
             novy_id = int(st.session_state.dopyty["ID"].max() + 1) if not st.session_state.dopyty.empty else 1
             novy_riadok = {
@@ -348,8 +346,7 @@ elif selected_tab == "Nová":
             save_data(st.session_state.dopyty)
             st.success(f"Dopyt pre '{miesto}' bol uložený pod ID {novy_id}!")
             st.session_state.active_tab = "Dopyty"
-        
-        st.rerun()
+            st.rerun()
 
 elif selected_tab == "Pipeline":
     st.header("📅 Kalendár a Prehľad potvrdených termínov")
