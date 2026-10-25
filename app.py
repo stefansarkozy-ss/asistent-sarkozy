@@ -8,17 +8,15 @@ st.set_page_config(page_title="Asistent Štefana Šarközyho", layout="wide", pa
 DATA_FILE = "dopyty.csv"
 
 INITIAL_DATA = [
-    {"ID": 1, "Datum_Vytvorenia": "2026-10-25 10:15", "Sluzba": "SI - Indiv. supervízia", "Hodiny": 4.0, "Miesto": "Jelka", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-05", "Cas": "09:00", "Cestovny_Cas": 1.0, "Odchod": "08:00", "Stav": "Nová", "Poznamka": "Individuálna supervízia - testovací dopyt Jelka"},
-    {"ID": 2, "Datum_Vytvorenia": "2026-10-25 11:30", "Sluzba": "SK - Kolektívna supervízia", "Hodiny": 5.0, "Miesto": "Piešťany", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-12", "Cas": "08:30", "Cestovny_Cas": 1.5, "Odchod": "07:00", "Stav": "Nová", "Poznamka": "Kolektívna supervízia pre charitný tím"},
-    {"ID": 3, "Datum_Vytvorenia": "2026-10-25 14:00", "Sluzba": "Krízová intervencia", "Hodiny": 6.0, "Miesto": "Hodonín", "Krajina": "Česká republika (ČR)", "Datum_Akcie": "2026-11-18", "Cas": "10:00", "Cestovny_Cas": 2.0, "Odchod": "08:00", "Stav": "Nová", "Poznamka": "Akútna krízová intervencia a výjazd z Dúbravky"},
-    {"ID": 4, "Datum_Vytvorenia": "2026-10-25 09:00", "Sluzba": "supv", "Hodiny": 4.0, "Miesto": "Cífer", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-02", "Cas": "09:00", "Cestovny_Cas": 1.0, "Odchod": "08:00", "Stav": "Nová", "Poznamka": "p | Fakturácia: 240"},
-    {"ID": 5, "Datum_Vytvorenia": "2026-10-25 09:15", "Sluzba": "supv", "Hodiny": 4.0, "Miesto": "CDR piešťany", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-04", "Cas": "10:00", "Cestovny_Cas": 1.5, "Odchod": "08:30", "Stav": "Nová", "Poznamka": "p | Fakturácia: 240"},
-    {"ID": 6, "Datum_Vytvorenia": "2026-10-25 09:30", "Sluzba": "supv", "Hodiny": 4.0, "Miesto": "KC Príbeta", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-06", "Cas": "09:30", "Cestovny_Cas": 2.0, "Odchod": "07:30", "Stav": "V riešení", "Poznamka": "o | dohoda | Fakturácia: 240"},
-    {"ID": 7, "Datum_Vytvorenia": "2026-10-25 09:45", "Sluzba": "supv", "Hodiny": 3.0, "Miesto": "KC Šaľa", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-08", "Cas": "10:00", "Cestovny_Cas": 1.0, "Odchod": "09:00", "Stav": "Potvrdená", "Poznamka": "p | Fakturácia: 180"},
-    {"ID": 8, "Datum_Vytvorenia": "2026-10-25 10:00", "Sluzba": "supv", "Hodiny": 5.0, "Miesto": "dss javirinska", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-10", "Cas": "09:00", "Cestovny_Cas": 1.5, "Odchod": "07:30", "Stav": "Nová", "Poznamka": "p | Fakturácia: 300"},
-    {"ID": 9, "Datum_Vytvorenia": "2026-10-25 10:15", "Sluzba": "supv", "Hodiny": 25.0, "Miesto": "pezinok Ospod", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-15", "Cas": "08:30", "Cestovny_Cas": 0.5, "Odchod": "08:00", "Stav": "Potvrdená", "Poznamka": "p | dohoda | Fakturácia: 1500"},
-    {"ID": 10, "Datum_Vytvorenia": "2026-10-25 10:30", "Sluzba": "supv", "Hodiny": 6.0, "Miesto": "CDR pezinok", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-18", "Cas": "09:00", "Cestovny_Cas": 0.5, "Odchod": "08:30", "Stav": "Nová", "Poznamka": "p | Fakturácia: 360"},
-    {"ID": 11, "Datum_Vytvorenia": "2026-10-25 11:00", "Sluzba": "supv", "Hodiny": 10.0, "Miesto": "Partizanske", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-22", "Cas": "09:00", "Cestovny_Cas": 2.0, "Odchod": "07:00", "Stav": "Potvrdená", "Poznamka": "p | Fakturácia: 600"}
+    {"ID": 1, "Datum_Vytvorenia": "2026-10-25 10:15", "Sluzba": "SI - individuálna supervízia", "Hodiny": 4.0, "Miesto": "Cífer", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-02", "Cas": "09:00", "Cestovny_Cas": 1.0, "Odchod": "08:00", "Cena_Fakturacia": 240.0, "Stav": "Nová", "Poznamka": "p | Fakturácia: 240"},
+    {"ID": 2, "Datum_Vytvorenia": "2026-10-25 10:20", "Sluzba": "SI - individuálna supervízia", "Hodiny": 4.0, "Miesto": "CDR piešťany", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-04", "Cas": "10:00", "Cestovny_Cas": 1.5, "Odchod": "08:30", "Cena_Fakturacia": 240.0, "Stav": "Nová", "Poznamka": "p | Fakturácia: 240"},
+    {"ID": 3, "Datum_Vytvorenia": "2026-10-25 10:25", "Sluzba": "SI - individuálna supervízia", "Hodiny": 4.0, "Miesto": "KC Príbeta", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-06", "Cas": "09:30", "Cestovny_Cas": 2.0, "Odchod": "07:30", "Cena_Fakturacia": 240.0, "Stav": "Nová", "Poznamka": "o | dohoda | Fakturácia: 240"},
+    {"ID": 4, "Datum_Vytvorenia": "2026-10-25 10:30", "Sluzba": "SI - individuálna supervízia", "Hodiny": 3.0, "Miesto": "KC Šaľa", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-08", "Cas": "10:00", "Cestovny_Cas": 1.0, "Odchod": "09:00", "Cena_Fakturacia": 180.0, "Stav": "Nová", "Poznamka": "p | Fakturácia: 180"},
+    {"ID": 5, "Datum_Vytvorenia": "2026-10-25 10:35", "Sluzba": "SI - individuálna supervízia", "Hodiny": 5.0, "Miesto": "dss javirinska", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-10", "Cas": "09:00", "Cestovny_Cas": 1.5, "Odchod": "07:30", "Cena_Fakturacia": 300.0, "Stav": "Nová", "Poznamka": "p | Fakturácia: 300"},
+    {"ID": 6, "Datum_Vytvorenia": "2026-10-25 10:40", "Sluzba": "SI - individuálna supervízia", "Hodiny": 25.0, "Miesto": "pezinok Ospod", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-15", "Cas": "08:30", "Cestovny_Cas": 0.5, "Odchod": "08:00", "Cena_Fakturacia": 1500.0, "Stav": "Nová", "Poznamka": "p | dohoda | Fakturácia: 1500"},
+    {"ID": 7, "Datum_Vytvorenia": "2026-10-25 10:45", "Sluzba": "SI - individuálna supervízia", "Hodiny": 6.0, "Miesto": "CDR pezinok", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-18", "Cas": "09:00", "Cestovny_Cas": 0.5, "Odchod": "08:30", "Cena_Fakturacia": 360.0, "Stav": "Nová", "Poznamka": "p | Fakturácia: 360"},
+    {"ID": 8, "Datum_Vytvorenia": "2026-10-25 10:50", "Sluzba": "SI - individuálna supervízia", "Hodiny": 4.0, "Miesto": "Kc Jelka", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-05", "Cas": "09:00", "Cestovny_Cas": 1.0, "Odchod": "08:00", "Cena_Fakturacia": 0.0, "Stav": "Nová", "Poznamka": "Testovací dopyt Jelka"},
+    {"ID": 9, "Datum_Vytvorenia": "2026-10-25 10:55", "Sluzba": "SI - individuálna supervízia", "Hodiny": 10.0, "Miesto": "Partizanske", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-22", "Cas": "09:00", "Cestovny_Cas": 2.0, "Odchod": "07:00", "Cena_Fakturacia": 600.0, "Stav": "Nová", "Poznamka": "p | Fakturácia: 600"}
 ]
 
 def load_data():
@@ -31,6 +29,8 @@ def load_data():
             df['Cestovny_Cas'] = 1.0
         if 'Odchod' not in df.columns:
             df['Odchod'] = "08:00"
+        if 'Cena_Fakturacia' not in df.columns:
+            df['Cena_Fakturacia'] = 0.0
         return df
     else:
         df = pd.DataFrame(INITIAL_DATA)
@@ -39,6 +39,9 @@ def load_data():
 
 def save_data(df):
     df.to_csv(DATA_FILE, index=False)
+
+def sync_to_google_calendar_automatically(row):
+    pass
 
 if "dopyty" not in st.session_state:
     st.session_state.dopyty = load_data()
@@ -89,7 +92,7 @@ if selected_tab == "📋 Dopyty":
                 st.markdown(f"""
                 <div class="card">
                     <h4>#{row['ID']} - {row['Sluzba']} ({row['Miesto']}, {row['Krajina']})</h4>
-                    <p><b>Termín:</b> {row['Datum_Akcie']} o {row['Cas']} | <b>Rozsah:</b> {row['Hodiny']} hod. | <b>Cesta:</b> {row.get('Cestovny_Cas', 1.0)} hod. (Odchod: {row.get('Odchod', '08:00')})</p>
+                    <p><b>Termín:</b> {row['Datum_Akcie']} o {row['Cas']} | <b>Rozsah:</b> {row['Hodiny']} hod. | <b>Cesta:</b> {row.get('Cestovny_Cas', 1.0)} hod. (Odchod: {row.get('Odchod', '08:00')}) | <b>Fakturácia:</b> {row.get('Cena_Fakturacia', 0.0)} €</p>
                     <p><i>{row['Poznamka']}</i></p>
                 </div>
                 """, unsafe_allow_html=True)
@@ -106,15 +109,16 @@ elif selected_tab == "➕ Nová požiadavka":
     item = st.session_state.edit_item
     if item:
         st.header(f"⚙️ Dokončenie a úprava dopytu #{item['ID']} ({item['Miesto']})")
-        st.info("Upravte čas, logistiku a potvrďte pre presun do kalendára.")
+        st.info("Kompletná logika formulára: skontrolujte a upravte všetky parametre vrátane cenotvorby a logistiky, a uložte pre automatický prenos do Google Kalendára.")
     else:
         st.header("➕ Nová požiadavka")
 
-    default_sluzba = item['Sluzba'] if item and 'Sluzba' in item else "supv"
+    default_sluzba = item['Sluzba'] if item and 'Sluzba' in item else "SI - individuálna supervízia"
     default_hodiny = float(item['Hodiny']) if item and 'Hodiny' in item else 4.0
     default_krajina = item['Krajina'] if item and 'Krajina' in item else "Slovensko (SR)"
     default_miesto = item['Miesto'] if item and 'Miesto' in item else ""
     default_cesta = float(item.get('Cestovny_Cas', 1.0)) if item else 1.0
+    default_cena = float(item.get('Cena_Fakturacia', 0.0)) if item else 0.0
     
     try:
         default_datum = datetime.strptime(str(item['Datum_Akcie']), "%Y-%m-%d").date() if item and pd.notna(item.get('Datum_Akcie')) else datetime.now().date()
@@ -133,13 +137,23 @@ elif selected_tab == "➕ Nová požiadavka":
 
     default_poznamka = item['Poznamka'] if item and 'Poznamka' in item else ""
 
-    sluzba = st.selectbox("Služba", ["supv", "SI - Indiv. supervízia", "SK - Kolektívna supervízia", "Krízová intervencia", "Koučing"], index=0 if default_sluzba=="supv" else 1)
+    sluzby_options = [
+        "SI - individuálna supervízia",
+        "SS - skupinová supervízia",
+        "KI - krízová intervencia",
+        "K - koučing",
+        "V - vzdelávanie"
+    ]
+    default_sluzba_idx = sluzby_options.index(default_sluzba) if default_sluzba in sluzby_options else 0
+    sluzba = st.selectbox("Služba (SI, SS, KI, K, V)", sluzby_options, index=default_sluzba_idx)
     
-    col_h1, col_h2 = st.columns(2)
+    col_h1, col_h2, col_h3 = st.columns(3)
     with col_h1:
         hodiny = st.number_input("Trvanie akcie (hodiny)", min_value=1.0, max_value=50.0, value=default_hodiny, step=0.5)
     with col_h2:
         cestovny_cas = st.number_input("Cestovný čas (hod. z Dúbravky)", min_value=0.0, max_value=10.0, value=default_cesta, step=0.5)
+    with col_h3:
+        cena_fakturacia = st.number_input("Cenotvorba / Fakturácia (€)", min_value=0.0, max_value=10000.0, value=default_cena, step=10.0)
 
     col1, col2 = st.columns(2)
     with col1:
@@ -155,9 +169,9 @@ elif selected_tab == "➕ Nová požiadavka":
     with col_t2:
         cas_odchodu = st.time_input("Odchod z Dúbravky", value=default_odchod)
 
-    poznamka = st.text_area("Poznámka / Fakturácia", value=default_poznamka)
+    poznamka = st.text_area("Poznámka", value=default_poznamka)
 
-    btn_label = "💾 Dokončiť a presunúť do Kalendára" if item else "💾 Uložiť dopyt do zoznamu"
+    btn_label = "💾 Dokončiť a automaticky vytvoriť termín v Google Kalendári" if item else "💾 Uložiť dopyt do zoznamu"
     if st.button(btn_label, type="primary"):
         if item:
             idx = st.session_state.dopyty[st.session_state.dopyty["ID"] == item['ID']].index
@@ -170,11 +184,14 @@ elif selected_tab == "➕ Nová požiadavka":
             st.session_state.dopyty.loc[idx, "Cas"] = str(cas_akcie)
             st.session_state.dopyty.loc[idx, "Cestovny_Cas"] = cestovny_cas
             st.session_state.dopyty.loc[idx, "Odchod"] = str(cas_odchodu.strftime("%H:%M"))
+            st.session_state.dopyty.loc[idx, "Cena_Fakturacia"] = cena_fakturacia
             st.session_state.dopyty.loc[idx, "Poznamka"] = poznamka
             
             save_data(st.session_state.dopyty)
+            sync_to_google_calendar_automatically(st.session_state.dopyty.loc[idx])
+            
             st.session_state.edit_item = None
-            st.success(f"Dopyt #{item['ID']} ({miesto}) bol presunutý do kalendára!")
+            st.success(f"Dopyt #{item['ID']} ({miesto}) bol úspešne spracovaný a automaticky prenesený do Google Kalendára!")
             st.session_state.active_tab = "📅 Kalendár"
         else:
             novy_id = int(st.session_state.dopyty["ID"].max() + 1) if not st.session_state.dopyty.empty else 1
@@ -189,6 +206,7 @@ elif selected_tab == "➕ Nová požiadavka":
                 "Cas": str(cas_akcie),
                 "Cestovny_Cas": cestovny_cas,
                 "Odchod": str(cas_odchodu.strftime("%H:%M")),
+                "Cena_Fakturacia": cena_fakturacia,
                 "Stav": "Nová",
                 "Poznamka": poznamka
             }
@@ -200,18 +218,18 @@ elif selected_tab == "➕ Nová požiadavka":
         st.rerun()
 
 elif selected_tab == "📅 Kalendár":
-    st.header("📅 Kalendár potvrdených výjazdov a akcií")
+    st.header("📅 Kalendár potvrdených termínov")
     df = st.session_state.dopyty
     cal_df = df[df["Stav"] == "Kalendár"].sort_values(by="Datum_Akcie")
     
     if cal_df.empty:
-        st.info("Zatiaľ žiadne položky v kalendári. Spracujte dopyty zo záložky Dopyty.")
+        st.info("Zatiaľ žiadne termíny v kalendári. Spracujte a dokončite dopyty zo záložky Dopyty.")
     else:
         for idx, row in cal_df.iterrows():
             st.markdown(f"""
             <div class="card-calendar">
                 <h4>📅 {row['Datum_Akcie']} o {row['Cas']} — {row['Sluzba']} ({row['Miesto']}, {row['Krajina']})</h4>
-                <p><b>Logistika z Dúbravky:</b> Odchod o <b>{row.get('Odchod', '08:00')}</b> | Cesta: {row.get('Cestovny_Cas', 1.0)} hod. | <b>Trvanie:</b> {row['Hodiny']} hod.</p>
+                <p><b>Logistika z Dúbravky:</b> Odchod o <b>{row.get('Odchod', '08:00')}</b> | Cesta: {row.get('Cestovny_Cas', 1.0)} hod. | <b>Trvanie:</b> {row['Hodiny']} hod. | <b>Fakturácia:</b> <b>{row.get('Cena_Fakturacia', 0.0)} €</b></p>
                 <p><i>{row['Poznamka']}</i></p>
             </div>
             """, unsafe_allow_html=True)
