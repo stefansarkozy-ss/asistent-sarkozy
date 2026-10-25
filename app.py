@@ -27,7 +27,6 @@ HOURLY_RATES = {
     "V - vzdelávanie": 60.0
 }
 
-# Zákonná amortizácia per km (2026 SR)
 LEGAL_AMORTIZATION_PER_KM = 0.313 
 
 def load_data():
@@ -56,9 +55,6 @@ def load_data():
 
 def save_data(df):
     df.to_csv(DATA_FILE, index=False)
-
-def sync_to_google_calendar_automatically(row):
-    pass
 
 if "dopyty" not in st.session_state:
     st.session_state.dopyty = load_data()
@@ -112,7 +108,284 @@ if selected_tab == "Dopyty":
             c_info, c_btn = st.columns([4, 1])
             total_cena = round(float(row.get('Cena_Sluzby', 0.0)) + float(row.get('Cena_Cestovne', 0.0)), 2)
             with c_info:
-                st.markdown(f"""
-                <div class="card">
-                    <h4>#{row['ID']} - {row['Sluzby']} ({row['Miesto']}, {row['Krajina']})</h4>
-                    <p><b>Termín:</b> {row
+                card_html = (
+                    f"<div class='card'>"
+                    f"<h4>#{row['ID']} - {row['Sluzby']} ({row['Miesto']}, {row['Krajina']})</h4>"
+                    f"<p><b>Termín:</b> {row['Datum_Akcie']} o {row['Cas']} | <b>Rozsah:</b> {row['Hodiny']} hod. | "
+                    f"<b>Cesta:</b> {row.get('Cestovny_Cas', 1.0)} hod. (Odchod: {row.get('Odchod', '08:00')}) | "
+                    f"<b>Spolu:</b> {total_cena} € (Služby: {row.get('Cena_Sluzby', 0.0)} € + Cestovné: {row.get('Cena_Cestovne', 0.0)} €)</p>"
+                    f"<p><i>{row['Poznamka']}</i></p>"
+                    f"</div>"
+                )
+                st.markdown(card_html, unsafe_allow_html=True)
+            
+            with c_btn:
+                st.write("") 
+                st.write("")
+                if st.button("📅 Spracovať", key=f"btn_proc_{row['ID']}"):
+                    st.session_state.edit_item = row.to_dict()
+                    srv_str = row['Sluzby']
+                    parts = [p.strip() for p in str(srv_str).split("+")]
+                    total_h = float(row['Hodiny'])
+                    h_per_part = total_h / max(1, len(parts))
+                    
+                    st.session_state.service_blocks = [{
+                        "sluzba": p if p in all_available_services else all_available_services[0], 
+                        "hodiny": h_per_part
+                    } for p in parts]
+                    st.session_state.active_tab = "Nová"
+                    st.rerun()
+
+elif selected_tab == "Nová":
+    item = st.session_state.edit_item
+    if item:
+        st.header(f"⚙️ Dokončenie a úprava dopytu #{item['ID']} ({item['Miesto']})")
+    else:
+        st.header("➕ Nová požiadavka")
+
+    default_krajina = item['Krajina'] if item and 'Krajina' in item else "Slovensko (SR)"
+    default_miesto = item['Miesto'] if item and 'Miesto' in item else ""
+    default_cesta = float(item.get('Cestovny_Cas', 1.0)) if item else 1.0
+    default_km = int(item.get('Km', 60)) if item else 60
+    
+    try:
+        default_datum = datetime.strptime(str(item['Datum_Akcie']), "%Y-%m-%d").date() if item and pd.notna(item.get('Datum_Akcie')) else datetime.now().date()
+    except Exception:
+        default_datum = datetime.now().date()
+
+    try:
+        t_parts = str(item['Cas']).split(":")
+        def_h_akcia = int(t_parts[0])
+        def_m_akcia = int(t_parts[1]) if len(t_parts) > 1 else 0
+    except Exception:
+        def_h_akcia, def_m_akcia = 9, 0
+
+    try:
+        od_parts = str(item.get('Odchod', '08:00')).split(":")
+        def_h_odchod = int(od_parts[0])
+        def_m_odchod = int(od_parts[1]) if len(od_parts) > 1 else 0
+    except Exception:
+        def_h_odchod, def_m_odchod = 8, 0
+
+    default_poznamka = item['Poznamka'] if item and 'Poznamka' in item else ""
+
+    # SEKCIA 1: SLUŽBY A BLOKY (AUTOMATICKÝ PREPOČET HODÍN × SADZBA)
+    st.markdown("### 1. SLUŽBY A BLOKY (AUTOMATICKÝ PREPOČET HODÍN × SADZBA)")
+    
+    total_sluzba_cena = 0.0
+    total_hodiny = 0.0
+    updated_blocks = []
+
+    for idx, block in enumerate(st.session_state.service_blocks):
+        st.markdown(f"**Služba / Blok #{idx + 1}**")
+        col_b1, col_b2, col_b3, col_b4 = st.columns([3, 1.5, 1.5, 0.8])
+        with col_b1:
+            sel_serv = st.selectbox(f"Služba {idx+1}", all_available_services, index=all_available_services.index(block["sluzba"]) if block["sluzba"] in all_available_services else 0, key=f"serv_{idx}")
+        with col_b2:
+            sel_hod = st.number_input(f"Hodiny {idx+1}", min_value=0.5, max_value=50.0, value=float(block["hodiny"]), step=0.5, key=f"hod_{idx}")
+        
+        rate = HOURLY_RATES.get(sel_serv, 60.0)
+        auto_calculated_price = round(sel_hod * rate, 2)
+
+        with col_b3:
+            sel_cena = st.number_input(f"Cena (€) {idx+1}", min_value=0.0, max_value=10000.0, value=auto_calculated_price, step=5.0, key=f"cena_{idx}")
+        with col_b4:
+            st.write("")
+            st.write("")
+            if len(st.session_state.service_blocks) > 1:
+                if st.button("🗑️", key=f"del_{idx}"):
+                    pass
+
+        total_sluzba_cena += sel_cena
+        total_hodiny += sel_hod
+        updated_blocks.append({"sluzba": sel_serv, "hodiny": sel_hod})
+        st.markdown(f"*Výpočet položky #{idx+1}: {sel_serv} ({sel_hod} hod. × {rate} €/h) = **{sel_cena} €***")
+        st.divider()
+
+    st.session_state.service_blocks = updated_blocks
+
+    if st.button("+ Pridať ďalšiu službu / blok"):
+        st.session_state.service_blocks.append({"sluzba": "SI - individuálna supervízia", "hodiny": 4.0})
+        st.rerun()
+
+    st.markdown(f"**Súčet za všetky služby:** `{round(total_sluzba_cena, 2)} €` (Celkom {total_hodiny} hod.)")
+
+    st.markdown("---")
+
+    # SEKCIA 2: PRESNÝ TABUĽKOVÝ KALKULÁTOR CESTOVNÉHO
+    st.markdown("### 🚗 TABUĽKOVÝ KALKULÁTOR CESTOVNÉHO (Mitsubishi Outlander: 8.5 l nafta/100 km)")
+    
+    col_k1, col_k2, col_k3, col_k4 = st.columns(4)
+    with col_k1:
+        vzdialenost_km = st.number_input("Kilometre tam a späť (km)", min_value=0, max_value=2000, value=default_km, step=10)
+    with col_k2:
+        spotreba = st.number_input("Spotreba (l/100 km)", min_value=1.0, max_value=20.0, value=8.5, step=0.1)
+    with col_k3:
+        cena_paliva = st.number_input("Cena nafty (€/l)", min_value=0.5, max_value=3.0, value=1.55, step=0.01)
+    with col_k4:
+        amortizacia_rate = st.number_input("Zákonná amortizácia (€/km)", min_value=0.1, max_value=1.0, value=LEGAL_AMORTIZATION_PER_KM, step=0.001, format="%.3f")
+
+    vypocet_amortizacia = vzdialenost_km * amortizacia_rate
+    vypocet_palivo = (spotreba / 100.0) * vzdialenost_km * cena_paliva
+    auto_cestovne_total = round(vypocet_amortizacia + vypocet_palivo, 2)
+
+    calc_box_html = (
+        f"<div class='calc-box'>"
+        f"<p style='margin:0;'><b>Rozpis cestovných náhrad:</b> Amortizácia ({vzdialenost_km} km × {amortizacia_rate} €) = "
+        f"<b>{round(vypocet_amortizacia, 2)} €</b> | Palivo nafta ({vzdialenost_km} km × {spotreba} l / 100 × {cena_paliva} €) = "
+        f"<b>{round(vypocet_palivo, 2)} €</b></p>"
+        f"</div>"
+    )
+    st.markdown(calc_box_html, unsafe_allow_html=True)
+
+    col_c1, col_c2 = st.columns(2)
+    with col_c1:
+        cestovny_cas = st.number_input("Cestovný čas (hod. z Dúbravky)", min_value=0.0, max_value=10.0, value=default_cesta, step=0.5)
+    with col_c2:
+        cena_cestovne = st.number_input("Výsledné cestovné (€) - automatický výpočet", min_value=0.0, max_value=2000.0, value=auto_cestovne_total, step=5.0)
+
+    st.markdown("---")
+
+    # SEKCIA 3: VOĽNÝ TERMÍN A KROKOVANIE ČASU (+/-)
+    st.markdown("### 📅 VOĽNÝ TERMÍN A ČASY LOGISTIKY z Dúbravky")
+    
+    col_d1, col_d2, col_d3 = st.columns(3)
+    with col_d1:
+        den = st.selectbox("Deň", list(range(1, 32)), index=default_datum.day - 1)
+    with col_d2:
+        mesiac = st.selectbox("Mesiac", list(range(1, 13)), index=default_datum.month - 1)
+    with col_d3:
+        rok = st.selectbox("Rok", [2026, 2027], index=0 if default_datum.year == 2026 else 1)
+
+    try:
+        datum_akcie = datetime(rok, mesiac, den).date()
+    except Exception:
+        datum_akcie = default_datum
+
+    col_l1, col_l2 = st.columns(2)
+    with col_l1:
+        krajina = st.radio("Krajina výjazdu", ["Slovensko (SR)", "Česká republika (ČR)"], horizontal=True, index=0 if default_krajina=="Slovensko (SR)" else 1)
+    with col_l2:
+        miesto = st.text_input("Miesto (z Dúbravky)", value=default_miesto)
+
+    col_t1, col_t2 = st.columns(2)
+    with col_t1:
+        st.markdown("**Začiatok akcie**")
+        col_th1, col_tm1 = st.columns(2)
+        with col_th1:
+            h_akcia = st.number_input("Hodina", min_value=0, max_value=23, value=def_h_akcia, step=1, key="h_akcia")
+        with col_tm1:
+            m_akcia = st.number_input("Minúta", min_value=0, max_value=59, value=def_m_akcia, step=15, key="m_akcia")
+    with col_t2:
+        st.markdown("**Odchod z Dúbravky**")
+        col_th2, col_tm2 = st.columns(2)
+        with col_th2:
+            h_odchod = st.number_input("Hodina", min_value=0, max_value=23, value=def_h_odchod, step=1, key="h_odchod")
+        with col_tm2:
+            m_odchod = st.number_input("Minúta", min_value=0, max_value=59, value=def_m_odchod, step=15, key="m_odchod")
+
+    cas_akcie_str = f"{h_akcia:02d}:{m_akcia:02d}"
+    cas_odchodu_str = f"{h_odchod:02d}:{m_odchod:02d}"
+
+    st.markdown("---")
+
+    # FINÁLNY SPOLOČNÝ SÚČET
+    celkova_suma = round(total_sluzba_cena + cena_cestovne, 2)
+    sum_box_html = (
+        f"<div style='background-color: #e3f2fd; padding: 18px; border-radius: 10px; border: 2px solid #2196f3; margin-bottom: 20px;'>"
+        f"<h3 style='margin: 0; color: #0d47a1;'>Súčet služieb ({round(total_sluzba_cena, 2)} €) + Cestovné ({round(cena_cestovne, 2)} €) = "
+        f"Celková suma: <b>{celkova_suma} €</b></h3>"
+        f"</div>"
+    )
+    st.markdown(sum_box_html, unsafe_allow_html=True)
+
+    poznamka = st.text_area("Poznámka", value=default_poznamka)
+
+    combined_services_str = " + ".join([b["sluzba"] for b in st.session_state.service_blocks])
+
+    btn_label = "💾 Dokončiť a automaticky vytvoriť termín v Google Kalendári" if item else "💾 Uložiť dopyt do zoznamu"
+    if st.button(btn_label, type="primary"):
+        if item:
+            idx = st.session_state.dopyty[st.session_state.dopyty["ID"] == item['ID']].index
+            st.session_state.dopyty.loc[idx, "Stav"] = "Kalendár"
+            st.session_state.dopyty.loc[idx, "Sluzby"] = combined_services_str
+            st.session_state.dopyty.loc[idx, "Hodiny"] = total_hodiny
+            st.session_state.dopyty.loc[idx, "Miesto"] = miesto
+            st.session_state.dopyty.loc[idx, "Krajina"] = krajina
+            st.session_state.dopyty.loc[idx, "Datum_Akcie"] = str(datum_akcie)
+            st.session_state.dopyty.loc[idx, "Cas"] = cas_akcie_str
+            st.session_state.dopyty.loc[idx, "Cestovny_Cas"] = cestovny_cas
+            st.session_state.dopyty.loc[idx, "Odchod"] = cas_odchodu_str
+            st.session_state.dopyty.loc[idx, "Cena_Sluzby"] = total_sluzba_cena
+            st.session_state.dopyty.loc[idx, "Cena_Cestovne"] = cena_cestovne
+            st.session_state.dopyty.loc[idx, "Km"] = vzdialenost_km
+            st.session_state.dopyty.loc[idx, "Poznamka"] = poznamka
+            
+            save_data(st.session_state.dopyty)
+            st.session_state.edit_item = None
+            st.success(f"Dopyt #{item['ID']} ({miesto}) bol úspešne spracovaný a prenesený do kalendára!")
+            st.session_state.active_tab = "Pipeline"
+        else:
+            novy_id = int(st.session_state.dopyty["ID"].max() + 1) if not st.session_state.dopyty.empty else 1
+            novy_riadok = {
+                "ID": novy_id,
+                "Datum_Vytvorenia": datetime.now().strftime("%Y-%m-%d %H:%M"),
+                "Sluzby": combined_services_str,
+                "Hodiny": total_hodiny,
+                "Miesto": miesto,
+                "Krajina": krajina,
+                "Datum_Akcie": str(datum_akcie),
+                "Cas": cas_akcie_str,
+                "Cestovny_Cas": cestovny_cas,
+                "Odchod": cas_odchodu_str,
+                "Cena_Sluzby": total_sluzba_cena,
+                "Cena_Cestovne": cena_cestovne,
+                "Km": vzdialenost_km,
+                "Stav": "Nová",
+                "Poznamka": poznamka
+            }
+            st.session_state.dopyty = pd.concat([st.session_state.dopyty, pd.DataFrame([novy_riadok])], ignore_index=True)
+            save_data(st.session_state.dopyty)
+            st.success(f"Dopyt pre '{miesto}' bol uložený pod ID {novy_id}!")
+            st.session_state.active_tab = "Dopyty"
+        
+        st.rerun()
+
+elif selected_tab == "Pipeline":
+    st.header("📅 Kalendár a Prehľad potvrdených termínov")
+    df = st.session_state.dopyty
+    cal_df = df[df["Stav"] == "Kalendár"].sort_values(by="Datum_Akcie")
+    
+    if cal_df.empty:
+        st.info("Zatiaľ žiadne termíny v kalendári. Spracujte a dokončite dopyty zo záložky Dopyty.")
+    else:
+        for idx, row in cal_df.iterrows():
+            total_cena = round(float(row.get('Cena_Sluzby', 0.0)) + float(row.get('Cena_Cestovne', 0.0)), 2)
+            cal_html = (
+                f"<div class='card-calendar'>"
+                f"<h4>📅 {row['Datum_Akcie']} o {row['Cas']} — {row['Sluzby']} ({row['Miesto']}, {row['Krajina']})</h4>"
+                f"<p><b>Logistika z Dúbravky:</b> Odchod o <b>{row.get('Odchod', '08:00')}</b> | Cesta: {row.get('Cestovny_Cas', 1.0)} hod. | <b>Trvanie:</b> {row['Hodiny']} hod.</p>"
+                f"<p><b>Fakturácia:</b> Služby ({row.get('Cena_Sluzby', 0.0)} €) + Cestovné ({row.get('Cena_Cestovne', 0.0)} €) = "
+                f"<b>Celkom {total_cena} €</b> (Vzdialenosť: {row.get('Km', 0)} km)</p>"
+                f"<p><i>{row['Poznamka']}</i></p>"
+                f"</div>"
+            )
+            st.markdown(cal_html, unsafe_allow_html=True)
+
+elif selected_tab == "Klienti":
+    st.header("👥 Klienti a partneri")
+    st.info("Modul pre správu kontaktov a inštitúcií.")
+
+elif selected_tab == "AI Engine":
+    st.header("🤖 AI Engine")
+    st.info("Modul pre pokročilú analýzu dopytov.")
+
+elif selected_tab == "Export":
+    st.header("📤 Export dát")
+    st.write(f"Dátový súbor: `{DATA_FILE}`")
+    if st.button("🔄 Obnoviť pôvodné testovacie dáta"):
+        df_init = pd.DataFrame(INITIAL_DATA)
+        save_data(df_init)
+        st.session_state.dopyty = df_init
+        st.success("Testovacie dáta boli obnovené!")
+        st.rerun()
