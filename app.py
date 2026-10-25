@@ -7,43 +7,17 @@ st.set_page_config(page_title="Asistent Štefana Šarközyho", layout="wide", pa
 
 DATA_FILE = "dopyty.csv"
 
+# Reálne dáta podľa tvojho zoznamu
 INITIAL_DATA = [
-    {
-        "ID": 1,
-        "Datum_Vytvorenia": "2026-10-25 10:15",
-        "Sluzba": "SI - Indiv. supervízia",
-        "Hodiny": 4.0,
-        "Miesto": "Jelka",
-        "Krajina": "Slovensko (SR)",
-        "Datum_Akcie": "2026-11-05",
-        "Cas": "09:00",
-        "Stav": "Nová",
-        "Poznamka": "Individuálna supervízia - testovací dopyt Jelka"
-    },
-    {
-        "ID": 2,
-        "Datum_Vytvorenia": "2026-10-25 11:30",
-        "Sluzba": "SK - Kolektívna supervízia",
-        "Hodiny": 5.0,
-        "Miesto": "Piešťany",
-        "Krajina": "Slovensko (SR)",
-        "Datum_Akcie": "2026-11-12",
-        "Cas": "08:30",
-        "Stav": "V riešení",
-        "Poznamka": "Kolektívna supervízia pre charitný tím"
-    },
-    {
-        "ID": 3,
-        "Datum_Vytvorenia": "2026-10-25 14:00",
-        "Sluzba": "Krízová intervencia",
-        "Hodiny": 6.0,
-        "Miesto": "Hodonín",
-        "Krajina": "Česká republika (ČR)",
-        "Datum_Akcie": "2026-11-18",
-        "Cas": "10:00",
-        "Stav": "Potvrdená",
-        "Poznamka": "Akútna krízová intervencia a výjazd z Dúbravky"
-    }
+    {"ID": 1, "Datum_Vytvorenia": "2026-10-25 09:00", "Sluzba": "SI - Supervízia", "Hodiny": 4.0, "Miesto": "Cífer", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-02", "Cas": "09:00", "Stav": "Nová", "Poznamka": "Fakturácia: 240"},
+    {"ID": 2, "Datum_Vytvorenia": "2026-10-25 09:15", "Sluzba": "SI - Supervízia", "Hodiny": 4.0, "Miesto": "CDR Piešťany", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-04", "Cas": "10:00", "Stav": "Nová", "Poznamka": "Fakturácia: 240"},
+    {"ID": 3, "Datum_Vytvorenia": "2026-10-25 09:30", "Sluzba": "SI - Supervízia", "Hodiny": 4.0, "Miesto": "KC Pribeta", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-06", "Cas": "09:30", "Stav": "V riešení", "Poznamka": "Dohoda, Fakturácia: 240"},
+    {"ID": 4, "Datum_Vytvorenia": "2026-10-25 09:45", "Sluzba": "SI - Supervízia", "Hodiny": 3.0, "Miesto": "KC Šaľa", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-08", "Cas": "10:00", "Stav": "Potvrdená", "Poznamka": "Fakturácia: 180"},
+    {"ID": 5, "Datum_Vytvorenia": "2026-10-25 10:00", "Sluzba": "SI - Supervízia", "Hodiny": 5.0, "Miesto": "DSS Javorník", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-10", "Cas": "09:00", "Stav": "Nová", "Poznamka": "Fakturácia: 300"},
+    {"ID": 6, "Datum_Vytvorenia": "2026-10-25 10:15", "Sluzba": "SI - Supervízia", "Hodiny": 25.0, "Miesto": "Pezinok OSPOD", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-15", "Cas": "08:30", "Stav": "Potvrdená", "Poznamka": "Dohoda, Fakturácia: 1500"},
+    {"ID": 7, "Datum_Vytvorenia": "2026-10-25 10:30", "Sluzba": "SI - Supervízia", "Hodiny": 6.0, "Miesto": "CDR Pezinok", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-18", "Cas": "09:00", "Stav": "Nová", "Poznamka": "Fakturácia: 360"},
+    {"ID": 8, "Datum_Vytvorenia": "2026-10-25 10:45", "Sluzba": "SI - Supervízia", "Hodiny": 4.0, "Miesto": "KC Jelka", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-20", "Cas": "10:00", "Stav": "Nová", "Poznamka": "Základný dopyt Jelka"},
+    {"ID": 9, "Datum_Vytvorenia": "2026-10-25 11:00", "Sluzba": "SI - Supervízia", "Hodiny": 10.0, "Miesto": "Partizánske", "Krajina": "Slovensko (SR)", "Datum_Akcie": "2026-11-22", "Cas": "09:00", "Stav": "Potvrdená", "Poznamka": "Fakturácia: 600"}
 ]
 
 def load_data():
@@ -64,9 +38,11 @@ def save_data(df):
 if "dopyty" not in st.session_state:
     st.session_state.dopyty = load_data()
 
+# Čistý dizajn ladiaci so svetlým rozhraním aplikácie
 st.markdown("""
     <style>
-    .card { background-color: #1e222d; padding: 20px; border-radius: 12px; margin-bottom: 15px; border-left: 5px solid #00d4b1; }
+    .card { background-color: #f8f9fa; padding: 18px; border-radius: 10px; margin-bottom: 12px; border: 1px solid #e0e0e0; border-left: 5px solid #ff4b4b; }
+    .card h4 { margin-top: 0; color: #262730; }
     </style>
 """, unsafe_allow_html=True)
 
@@ -92,7 +68,7 @@ with tabs[0]:
             st.markdown(f"""
             <div class="card">
                 <h4>#{row['ID']} - {row['Sluzba']} ({row['Miesto']}, {row['Krajina']})</h4>
-                <p><b>Termín:</b> {row['Datum_Akcie']} o {row['Cas']} | <b>Rozsah:</b> {row['Hodiny']} hod. | <b>Stav:</b> <span style="color:#00d4b1">{row['Stav']}</span></p>
+                <p><b>Termín:</b> {row['Datum_Akcie']} o {row['Cas']} | <b>Rozsah:</b> {row['Hodiny']} hod. | <b>Stav:</b> <b>{row['Stav']}</b></p>
                 <p><i>{row['Poznamka']}</i></p>
             </div>
             """, unsafe_allow_html=True)
@@ -110,15 +86,15 @@ with tabs[0]:
 
 with tabs[1]:
     st.header("1. Služby a bloky")
-    sluzba = st.selectbox("Služba", ["SI - Indiv. supervízia", "SK - Kolektívna supervízia", "Krízová intervencia", "Koučing", "Vzdelávanie / Lektorovanie"])
-    hodiny = st.number_input("Hodiny", min_value=1.0, max_value=12.0, value=4.0, step=0.5)
+    sluzba = st.selectbox("Služba", ["SI - Supervízia", "SK - Kolektívna supervízia", "Krízová intervencia", "Koučing", "Vzdelávanie / Lektorovanie"])
+    hodiny = st.number_input("Hodiny", min_value=1.0, max_value=50.0, value=4.0, step=0.5)
 
     st.header("2. Voľný termín a logistika (z Dúbravky)")
     col1, col2 = st.columns(2)
     with col1:
         krajina = st.radio("Krajina výjazdu", ["Slovensko (SR)", "Česká republika (ČR)"], horizontal=True)
     with col2:
-        miesto = st.text_input("Miesto / Obec (voľný text pre SR aj ČR)", value="Jelka")
+        miesto = st.text_input("Miesto / Obec (voľný text)", value="Jelka")
 
     col_d, col_t = st.columns(2)
     with col_d:
@@ -126,7 +102,7 @@ with tabs[1]:
     with col_t:
         cas_akcie = st.time_input("Čas začiatku", datetime.now().time())
 
-    poznamka = st.text_area("Poznámka / Špecifikácia dopytu", "")
+    poznamka = st.text_area("Poznámka / Fakturácia", "")
 
     if st.button("💾 Uložiť dopyt do zoznamu", type="primary"):
         novy_id = int(st.session_state.dopyty["ID"].max() + 1) if not st.session_state.dopyty.empty else 1
